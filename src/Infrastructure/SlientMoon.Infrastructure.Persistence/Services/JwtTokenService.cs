@@ -34,7 +34,8 @@ namespace SlientMoon.Infrastructure.Persistence.Services
 
                 new Claim(JwtRegisteredClaimNames.Name, user.Name),
 
-                new Claim("emailVerified", user.EmailVerified.ToString())
+                new Claim("emailVerified", user.EmailVerified.ToString()),
+                new Claim("role", user.Role.ToString())
             };
 
             var key = _configuration["APIAppSettings:JWTSettings:Key"];
@@ -73,6 +74,56 @@ namespace SlientMoon.Infrastructure.Persistence.Services
             var handler = new JwtSecurityTokenHandler();    
             var jwtToken = handler.ReadJwtToken(token);
             return jwtToken.Subject;
+        }
+
+        public ClaimsPrincipal ValidateToken(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return null;
+
+            var key = _configuration["APIAppSettings:JWTSettings:Key"];
+            var issuer = _configuration["APIAppSettings:JWTSettings:Issuer"];
+            var audience = _configuration["APIAppSettings:JWTSettings:Audience"];
+
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
+
+                ValidateIssuer = true,
+                ValidIssuer = issuer,
+
+                ValidateAudience = true,
+                ValidAudience = audience,
+
+                ValidateLifetime = true,
+                ClockSkew = TimeSpan.Zero,
+
+                NameClaimType = JwtRegisteredClaimNames.Name,
+                RoleClaimType = "role"
+            };
+
+
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+
+                handler.InboundClaimTypeMap.Clear();
+
+                var principal = handler.ValidateToken(token, validationParameters, out var validatedToken);
+
+                if (validatedToken is not JwtSecurityToken jwt ||
+                    !jwt.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+
+                return principal;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

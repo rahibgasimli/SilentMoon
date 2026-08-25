@@ -1,0 +1,161 @@
+:root {
+    --sidebar-width: 240px;
+    --sidebar-bg: #1e2532;
+    --sidebar-text: #b8c2d9;
+    --sidebar-text-active: #ffffff;
+    --sidebar-accent: #4f7df3;
+    --content-bg: #f4f6f9;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--content-bg);
+}
+
+.admin-shell {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* --- Sidebar --- */
+.admin-sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.admin-sidebar-brand {
+    padding: 1.25rem 1.25rem;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1.05rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.admin-nav {
+    flex: 1;
+    padding: 0.75rem 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-nav-link {
+    display: block;
+    padding: 0.65rem 1.25rem;
+    color: var(--sidebar-text);
+    text-decoration: none;
+    font-size: 0.92rem;
+    border-left: 3px solid transparent;
+}
+
+    .admin-nav-link:hover {
+        background: rgba(255,255,255,0.05);
+        color: var(--sidebar-text-active);
+    }
+
+    .admin-nav-link.active {
+        background: rgba(79,125,243,0.15);
+        color: var(--sidebar-text-active);
+        border-left-color: var(--sidebar-accent);
+        font-weight: 500;
+    }
+
+.admin-sidebar-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.admin-logout {
+    color: var(--sidebar-text);
+    text-decoration: none;
+    padding: 0;
+}
+
+    .admin-logout:hover {
+        color: #ff6b6b;
+    }
+
+/* --- Main --- */
+.admin-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.admin-topbar {
+    background: #fff;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e9f0;
+}
+
+.admin-page-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #1e2532;
+}
+
+.admin-content {
+    padding: 1.5rem;
+    flex: 1;
+}
+
+/* --- Stat kartları (Dashboard üçün) --- */
+.stat-card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+    .stat-card .stat-value {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1e2532;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.85rem;
+        color: #6b7280;
+    }
+
+
+/* --- Login --- */
+.login-body {
+    background: var(--sidebar-bg);
+}
+
+.login-shell {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.login-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.login-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #1e2532;
+}

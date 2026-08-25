@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using SlientMoon.Application.Interfaces.Services;
 using SlientMoon.WebApi.Services;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -15,7 +14,6 @@ namespace SlientMoon.WebApi.Extensions
         public static void AddServiceExtension(this IServiceCollection services)
         {
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-            services.AddTransient<IUserService, UserService>();
             services.AddScoped<IProblemResultFactory, ProblemResultFactory>();
         }
 

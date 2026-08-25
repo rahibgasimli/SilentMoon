@@ -1,0 +1,21 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container py-4">
+    <h1 class="mb-4">Admin Panel</h1>
+
+    @if (ViewBag.IsSuccess == true)
+    {
+        <div class="alert alert-success">
+            <strong>Bağlantı işləyir.</strong>
+            Bazada <strong>@ViewBag.CategoryCount</strong> kateqoriya tapıldı.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger">
+            <strong>Xəta:</strong> @ViewBag.ErrorCode
+        </div>
+    }
+</div>

@@ -94,8 +94,11 @@ namespace SlientMoon.WebApi
                 {
                     var context = services.GetRequiredService<AppDbContext>();
                     var dateTimeService = services.GetRequiredService<IDateTimeService>();
+                    var passwordHasher = services.GetRequiredService<IPasswordHasher>();
+                    var configuration = services.GetRequiredService<IConfiguration>();
 
                     DbInitializer.SeedAsync(context, dateTimeService).GetAwaiter().GetResult();
+                    DbInitializer.SeedAdminUserAsync(context, passwordHasher, dateTimeService, configuration).GetAwaiter().GetResult();
                 }
                 catch (System.Exception ex)
                 {

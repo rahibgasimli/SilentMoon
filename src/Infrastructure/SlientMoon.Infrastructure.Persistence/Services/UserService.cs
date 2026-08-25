@@ -3,7 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using SlientMoon.Application.Interfaces.Services;
 
-namespace SlientMoon.WebApi.Services
+namespace SlientMoon.Infrastructure.Persistence.Services
 {
     public class UserService : IUserService
     {
@@ -24,7 +24,7 @@ namespace SlientMoon.WebApi.Services
         }
         public string GetUserEmail()
         {
-            return accessor?.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return accessor?.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
 
     }

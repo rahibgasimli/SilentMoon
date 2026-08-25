@@ -51,6 +51,9 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                     b.Property<string>("RefreshTokenId")
                         .HasColumnType("NVARCHAR2(450)");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("NUMBER(10)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RefreshTokenId");
@@ -327,7 +330,7 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                         {
                             Id = "6f9b17f4-d55c-4f7f-a123-1d54bdf19001",
                             ColorHex = "#8E97FD",
-                            CreatedAt = new DateTime(2026, 8, 21, 8, 21, 13, 418, DateTimeKind.Utc).AddTicks(5075),
+                            CreatedAt = new DateTime(2026, 8, 24, 11, 18, 15, 595, DateTimeKind.Utc).AddTicks(7500),
                             IconKey = "leaf",
                             Slug = "reduce-stress",
                             Title = "Reduce Stress"
@@ -336,7 +339,7 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                         {
                             Id = "6f9b17f4-d55c-4f7f-a123-1d54bdf19002",
                             ColorHex = "#FFC97E",
-                            CreatedAt = new DateTime(2026, 8, 21, 8, 21, 13, 418, DateTimeKind.Utc).AddTicks(5080),
+                            CreatedAt = new DateTime(2026, 8, 24, 11, 18, 15, 595, DateTimeKind.Utc).AddTicks(7509),
                             IconKey = "moon",
                             Slug = "improve-sleep",
                             Title = "Improve Sleep"

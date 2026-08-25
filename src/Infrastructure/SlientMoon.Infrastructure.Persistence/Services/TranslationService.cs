@@ -1,4 +1,5 @@
-﻿using SlientMoon.Application.Common.Extensions;
+﻿using Microsoft.EntityFrameworkCore;
+using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.Interfaces.Services;
 using SlientMoon.Domain.Common;
 using SlientMoon.Domain.Entities;
@@ -24,14 +25,16 @@ namespace SlientMoon.Infrastructure.Persistence.Services
         {
             var keyList = keys.Distinct().ToList();
 
-            if(!keyList.Any())
+            if (!keyList.Any())
                 return new Dictionary<string, string>();
 
-            var allTranslations = await _uow.GenericRepository<Translation>().GetAllAsync();
-
-            return allTranslations
+            var translations = await _uow.GenericRepository<Translation>()
+                .GetQueryable()
                 .Where(t => t.LanguageCode == languageCode && keyList.Contains(t.Key))
-                .ToDictionary(t => t.Key, t => t.Value);
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            return translations.ToDictionary(t => t.Key, t => t.Value);
         }
 
         public async Task SaveTranslationsAsync<TEntity>(string entityId, LanguageCode languageCode, Dictionary<string, string> propertyValues, CancellationToken cancellationToken = default) where TEntity : BaseEntity
@@ -40,10 +43,10 @@ namespace SlientMoon.Infrastructure.Persistence.Services
                 .Select(propName => TranslationExtensions.BuildKey<TEntity>(propName, entityId))
                 .ToList();
 
-            var existingTranslations = await _uow.GenericRepository<Translation>().GetAllAsync();
-            var dbTranslations = existingTranslations
+            var dbTranslations = await _uow.GenericRepository<Translation>()
+                .GetQueryable()
                 .Where(t => t.LanguageCode == languageCode && keys.Contains(t.Key))
-                .ToDictionary(t => t.Key);
+                .ToDictionaryAsync(t => t.Key, cancellationToken);
 
             foreach (var (propertyName, value) in propertyValues)
             {
