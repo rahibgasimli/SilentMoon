@@ -14,6 +14,7 @@ using SlientMoon.Infrastructure.Persistence.Contexts;
 using SlientMoon.Infrastructure.Persistence.Dapper;
 using SlientMoon.Infrastructure.Persistence.Logging;
 using SlientMoon.Infrastructure.Persistence.Repositories;
+using SlientMoon.Infrastructure.Persistence.Repositories.Admin;
 using SlientMoon.Infrastructure.Persistence.Services;
 using SlientMoon.Infrastructure.Persistence.Settings;
 using System;
@@ -58,15 +59,18 @@ namespace SlientMoon.Infrastructure.Persistence
             services.AddScoped<IPomodoroRepository, PomodoroRepository>();
             services.AddScoped<IReminderRepository, ReminderRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddTransient<IUserService, UserService>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<ITopicRepository, TopicRepository>();
             services.AddScoped<ICourseRepository, CourseRepository>();
+            services.AddScoped<IAdminCourseRepository, AdminCourseRepository>();
             services.AddScoped<IStorageService, MinioStorageService>();
             services.AddScoped<IDailyThoughtRepository, DailyThoughtRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IFavoriteRepository, FavoriteRepository>();
             services.AddScoped<IPasswordHasher, PasswordHasherService>();
             services.AddScoped<ILanguageService, LanguageService>();
+            services.AddScoped<ITranslationService, TranslationService>();
             services.AddScoped<IUow, Uow>();
             RegisterDapperDomainMappings();
         }

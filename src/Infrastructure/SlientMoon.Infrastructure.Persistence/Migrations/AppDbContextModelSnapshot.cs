@@ -51,6 +51,9 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                     b.Property<string>("RefreshTokenId")
                         .HasColumnType("NVARCHAR2(450)");
 
+                    b.Property<int>("Role")
+                        .HasColumnType("NUMBER(10)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RefreshTokenId");
@@ -166,43 +169,6 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                     b.HasIndex("NarratorId");
 
                     b.ToTable("CourseNarrators");
-                });
-
-            modelBuilder.Entity("SlientMoon.Domain.Entities.CourseTranslation", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("NVARCHAR2(450)");
-
-                    b.Property<string>("CourseId")
-                        .HasColumnType("NVARCHAR2(450)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TIMESTAMP(7)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("NVARCHAR2(2000)");
-
-                    b.Property<string>("LanguageCode")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("NVARCHAR2(10)");
-
-                    b.Property<string>("Subtitle")
-                        .HasMaxLength(500)
-                        .HasColumnType("NVARCHAR2(500)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("NVARCHAR2(250)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CourseId", "LanguageCode")
-                        .IsUnique()
-                        .HasFilter("\"CourseId\" IS NOT NULL");
-
-                    b.ToTable("CourseTranslations");
                 });
 
             modelBuilder.Entity("SlientMoon.Domain.Entities.DailyThought", b =>
@@ -364,7 +330,7 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                         {
                             Id = "6f9b17f4-d55c-4f7f-a123-1d54bdf19001",
                             ColorHex = "#8E97FD",
-                            CreatedAt = new DateTime(2026, 8, 16, 15, 14, 41, 207, DateTimeKind.Utc).AddTicks(9709),
+                            CreatedAt = new DateTime(2026, 8, 24, 11, 18, 15, 595, DateTimeKind.Utc).AddTicks(7500),
                             IconKey = "leaf",
                             Slug = "reduce-stress",
                             Title = "Reduce Stress"
@@ -373,7 +339,7 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                         {
                             Id = "6f9b17f4-d55c-4f7f-a123-1d54bdf19002",
                             ColorHex = "#FFC97E",
-                            CreatedAt = new DateTime(2026, 8, 16, 15, 14, 41, 207, DateTimeKind.Utc).AddTicks(9716),
+                            CreatedAt = new DateTime(2026, 8, 24, 11, 18, 15, 595, DateTimeKind.Utc).AddTicks(7509),
                             IconKey = "moon",
                             Slug = "improve-sleep",
                             Title = "Improve Sleep"
@@ -422,6 +388,36 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                     b.HasIndex("NarratorId");
 
                     b.ToTable("Tracks");
+                });
+
+            modelBuilder.Entity("SlientMoon.Domain.Entities.Translation", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("NVARCHAR2(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TIMESTAMP(7)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("NVARCHAR2(150)");
+
+                    b.Property<string>("LanguageCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("NVARCHAR2(10)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("NVARCHAR2(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key", "LanguageCode")
+                        .IsUnique();
+
+                    b.ToTable("Translations");
                 });
 
             modelBuilder.Entity("SlientMoon.Domain.Entities.UserTopic", b =>
@@ -485,16 +481,6 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                     b.Navigation("Course");
 
                     b.Navigation("Narrator");
-                });
-
-            modelBuilder.Entity("SlientMoon.Domain.Entities.CourseTranslation", b =>
-                {
-                    b.HasOne("SlientMoon.Domain.Entities.Course", "Course")
-                        .WithMany("Translations")
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Course");
                 });
 
             modelBuilder.Entity("SlientMoon.Domain.Entities.DailyThought", b =>
@@ -591,8 +577,6 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                     b.Navigation("DailyThoughts");
 
                     b.Navigation("Tracks");
-
-                    b.Navigation("Translations");
                 });
 
             modelBuilder.Entity("SlientMoon.Domain.Entities.Narrator", b =>

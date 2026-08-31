@@ -13,7 +13,7 @@ namespace SlientMoon.Domain.Entities
         public bool EmailVerified { get; set; }
         public string? AvatarUrl { get; set; }
         public LoginType LoginType { get; set; } = LoginType.Normal;
-
+        public UserRole Role { get; set; } = UserRole.User;
         public string? RefreshTokenId { get; set; }
         public RefreshToken RefreshToken { get; set; }
 

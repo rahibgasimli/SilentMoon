@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlientMoon.SharedKernel", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlientMoon.Infrastructure.Messaging", "src\Infrastructure\SlientMoon.Infrastructure.Messaging\SlientMoon.Infrastructure.Messaging.csproj", "{E62F08B8-E9BA-B89D-058E-683BA504F07D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlientMoon.AdminPanel", "src\Presentation\SlientMoon.AdminPanel\SlientMoon.AdminPanel.csproj", "{C9ED7850-08CF-4284-9739-7DF959714988}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{E62F08B8-E9BA-B89D-058E-683BA504F07D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E62F08B8-E9BA-B89D-058E-683BA504F07D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E62F08B8-E9BA-B89D-058E-683BA504F07D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C9ED7850-08CF-4284-9739-7DF959714988}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9ED7850-08CF-4284-9739-7DF959714988}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9ED7850-08CF-4284-9739-7DF959714988}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9ED7850-08CF-4284-9739-7DF959714988}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +70,7 @@ Global
 		{ABA304E5-E37C-41FC-82DF-DDEA880E3611} = {7A4DD4B2-B2E3-4C4E-A1C3-B988088BAC7F}
 		{52447E7B-707C-4391-A3E4-13D700893B38} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{E62F08B8-E9BA-B89D-058E-683BA504F07D} = {32D0FADD-C6F3-477D-B864-2FF96ECDFA01}
+		{C9ED7850-08CF-4284-9739-7DF959714988} = {7A4DD4B2-B2E3-4C4E-A1C3-B988088BAC7F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1EFBAF45-5EC7-491B-8E1D-27E295B5B2D0}

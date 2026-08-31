@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using SlientMoon.Application.Interfaces.Services;
 using SlientMoon.Domain.Entities;
 using SlientMoon.Domain.Enums;
 using SlientMoon.Infrastructure.Persistence.Contexts;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace SlientMoon.Infrastructure.Persistence.Seed
 {
@@ -14,14 +15,11 @@ namespace SlientMoon.Infrastructure.Persistence.Seed
     {
         public static async Task SeedAsync(AppDbContext context, IDateTimeService dateTimeService)
         {
-            // Baza artıq doludursa təkrar işləməsin
             if (await context.Courses.AnyAsync()) return;
 
-            // Hazırkı vaxtı öz servisindən alırıq
             var now = dateTimeService.NowUtc;
             var today = now.Date;
 
-            // 1. CategoryTypes (YENİ ENTITY VƏ CƏDVƏL)
             var sleepType = new CategoryType
             {
                 Id = Guid.NewGuid().ToString(),
@@ -48,12 +46,12 @@ namespace SlientMoon.Infrastructure.Persistence.Seed
 
             await context.CategoryTypes.AddRangeAsync(sleepType, meditationType, musicType);
 
-            // 2. Kategoriyalar (CategoryTypeId İLƏ BAĞLANTI)
+
             var sleepCategory = new Category
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = "Sleep",
-                CategoryTypeId = sleepType.Id, // 👈 Entity-nin Id-si verilir
+                CategoryTypeId = sleepType.Id,
                 Slug = "sleep",
                 IconUrl = "https://cdn.silentmoon.app/icons/sleep.png",
                 CreatedAt = now
@@ -81,13 +79,12 @@ namespace SlientMoon.Infrastructure.Persistence.Seed
 
             await context.Categories.AddRangeAsync(sleepCategory, meditationCategory, anxiousCategory);
 
-            // 3. Səsləndirənlər (Narrators)
             var maleNarrator = new Narrator { Id = Guid.NewGuid().ToString(), Name = "Male Voice", Gender = Gender.Male, CreatedAt = now };
             var femaleNarrator = new Narrator { Id = Guid.NewGuid().ToString(), Name = "Female Voice", Gender = Gender.Female, CreatedAt = now };
 
             await context.Narrators.AddRangeAsync(maleNarrator, femaleNarrator);
 
-            // 4. Kurslar (Courses)
+
             var course1 = new Course
             {
                 Id = Guid.NewGuid().ToString(),
@@ -129,7 +126,7 @@ namespace SlientMoon.Infrastructure.Persistence.Seed
 
             await context.Courses.AddRangeAsync(course1, course2, course3);
 
-            // 5. Course - Narrator Əlaqələri
+
             var courseNarrators = new List<CourseNarrator>
             {
                 new CourseNarrator { CourseId = course1.Id, NarratorId = maleNarrator.Id },
@@ -140,7 +137,6 @@ namespace SlientMoon.Infrastructure.Persistence.Seed
 
             await context.CourseNarrators.AddRangeAsync(courseNarrators);
 
-            // 6. Daily Thought
             var dailyThought = new DailyThought
             {
                 Id = Guid.NewGuid().ToString(),
@@ -151,6 +147,50 @@ namespace SlientMoon.Infrastructure.Persistence.Seed
 
             await context.DailyThoughts.AddAsync(dailyThought);
 
+            await context.SaveChangesAsync();
+        }
+
+        public static async Task SeedAdminUserAsync(
+                AppDbContext context,
+                IPasswordHasher passwordHasher,
+                IDateTimeService dateTimeService,
+                IConfiguration configuration)
+        {
+            var email = configuration["APIAppSettings:AdminSeed:Email"];
+            var password = configuration["APIAppSettings:AdminSeed:Password"];
+
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+                return;
+
+            var normalizedEmail = email.Trim().ToLower();
+
+            var existing = await context.Users
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+
+
+            if (existing != null)
+            {
+                if (existing.Role != UserRole.Admin)
+                {
+                    existing.Role = UserRole.Admin;
+                    await context.SaveChangesAsync();
+                }
+                return;
+            }
+
+            var admin = new ApplicationUser
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = configuration["APIAppSettings:AdminSeed:Name"] ?? "System Admin",
+                Email = normalizedEmail,
+                PasswordHash = passwordHasher.Hash(password),
+                EmailVerified = true,
+                Role = UserRole.Admin,
+                LoginType = LoginType.Normal,
+                CreatedAt = dateTimeService.NowUtc
+            };
+
+            await context.Users.AddAsync(admin);
             await context.SaveChangesAsync();
         }
     }
