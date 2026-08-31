@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SlientMoon.AdminPanel.Controllers
 {
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize]
     public abstract class BaseAdminController : Controller
     {
         protected IDispatcher Dispatcher =>

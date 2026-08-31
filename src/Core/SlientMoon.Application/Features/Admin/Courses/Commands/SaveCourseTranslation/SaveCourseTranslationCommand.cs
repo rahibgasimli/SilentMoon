@@ -28,11 +28,11 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.SaveCourseTrans
 
         public async Task<Result<bool>> Handle(SaveCourseTranslationCommand command, CancellationToken ct)
         {
-            var propertyValues = new Dictionary<string, string>
+            var propertyValues = new Dictionary<TranslatableField, string>
             {
-                { nameof(Course.Title), command.Title },
-                { nameof(Course.Subtitle), command.Subtitle },
-                { nameof(Course.Description), command.Description }
+                { TranslatableField.Title, command.Title },
+                { TranslatableField.Subtitle, command.Subtitle },
+                { TranslatableField.Description, command.Description }
             };
 
             await _translationService.SaveTranslationsAsync<Course>(

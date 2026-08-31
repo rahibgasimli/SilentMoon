@@ -3,6 +3,7 @@ using SlientMoon.Application.Interfaces.Services;
 using SlientMoon.Domain.Errors;
 using SlientMoon.Infrastructure.Persistence.Services;
 using System;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -27,7 +28,8 @@ namespace SlientMoon.Infrastructure.Persistence.Middleware
                 var firstQuoteIndex = rawToken.IndexOf('"');
                 var token = firstQuoteIndex >= 0 ? rawToken.Substring(0, firstQuoteIndex) : rawToken;
 
-                var userId = jwtTokenService.GetUserIdFromToken(token);
+                var principal = jwtTokenService.ValidateToken(token);
+                var userId = principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
 
                 if (string.IsNullOrEmpty(userId))
                 {

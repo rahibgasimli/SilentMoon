@@ -71,11 +71,11 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.CreateCourse
             if (translation is null)
                 return;
 
-            var propertyValues = new Dictionary<string, string>
+            var propertyValues = new Dictionary<TranslatableField, string>
             {
-                { nameof(Course.Title), translation.Title },
-                { nameof(Course.Subtitle), translation.Subtitle },
-                { nameof(Course.Description), translation.Description }
+                { TranslatableField.Title, translation.Title },
+                { TranslatableField.Subtitle, translation.Subtitle },
+                { TranslatableField.Description, translation.Description }
             };
 
             await _translationService.SaveTranslationsAsync<Course>(courseId, languageCode, propertyValues, ct);

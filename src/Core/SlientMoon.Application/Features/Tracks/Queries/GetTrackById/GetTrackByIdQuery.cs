@@ -56,8 +56,6 @@ namespace SlientMoon.Application.Features.Tracks.Queries.GetTrackById
                 AudioUrl = track.AudioUrl,
                 MimeType = track.MimeType,
                 FileSizeBytes = track.FileSizeBytes,
-                ImageUrl = track.ImageUrl,
-                TrackNumber = track.TrackNumber
             };
 
             return dto;

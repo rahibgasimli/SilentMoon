@@ -30,7 +30,6 @@ namespace SlientMoon.Application.Features.Tracks.Queries.StreamTrack
             _currentUserService = currentUserService;
         }
 
-
         public async Task<Result<TrackStreamDto>> Handle(StreamTrackQuery query, CancellationToken ct)
         {
             //var userId = _currentUserService.GetUser();

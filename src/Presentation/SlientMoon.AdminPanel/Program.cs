@@ -26,14 +26,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.SlidingExpiration = true;
     });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOnly", policy =>
-        policy.RequireRole(UserRole.Admin.ToString()));
-});
+builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IValidator<LoginViewModel>, LoginViewModelValidator>();
 builder.Services.AddScoped<IValidator<CreateCourseViewModel>, CreateCourseViewModelValidator>();
+builder.Services.AddScoped<IValidator<EditCourseViewModel>, EditCourseViewModelValidator>();
 
 builder.Services.AddApplicationLayer();
 builder.Services.AddPersistenceRegistration(builder.Configuration);

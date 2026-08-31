@@ -22,6 +22,32 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
 
             OracleModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("SlientMoon.Domain.Entities.Admin", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("NVARCHAR2(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TIMESTAMP(7)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("NVARCHAR2(450)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("NVARCHAR2(2000)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("NVARCHAR2(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique()
+                        .HasFilter("\"Email\" IS NOT NULL");
+
+                    b.ToTable("Admins", (string)null);
+                });
+
             modelBuilder.Entity("SlientMoon.Domain.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
@@ -50,9 +76,6 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("RefreshTokenId")
                         .HasColumnType("NVARCHAR2(450)");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("NUMBER(10)");
 
                     b.HasKey("Id");
 
@@ -330,7 +353,7 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                         {
                             Id = "6f9b17f4-d55c-4f7f-a123-1d54bdf19001",
                             ColorHex = "#8E97FD",
-                            CreatedAt = new DateTime(2026, 8, 24, 11, 18, 15, 595, DateTimeKind.Utc).AddTicks(7500),
+                            CreatedAt = new DateTime(2026, 8, 31, 8, 14, 39, 324, DateTimeKind.Utc).AddTicks(7873),
                             IconKey = "leaf",
                             Slug = "reduce-stress",
                             Title = "Reduce Stress"
@@ -339,7 +362,7 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                         {
                             Id = "6f9b17f4-d55c-4f7f-a123-1d54bdf19002",
                             ColorHex = "#FFC97E",
-                            CreatedAt = new DateTime(2026, 8, 24, 11, 18, 15, 595, DateTimeKind.Utc).AddTicks(7509),
+                            CreatedAt = new DateTime(2026, 8, 31, 8, 14, 39, 324, DateTimeKind.Utc).AddTicks(7881),
                             IconKey = "moon",
                             Slug = "improve-sleep",
                             Title = "Improve Sleep"
@@ -366,20 +389,15 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
                     b.Property<long>("FileSizeBytes")
                         .HasColumnType("NUMBER(19)");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("NVARCHAR2(2000)");
-
                     b.Property<string>("MimeType")
                         .HasColumnType("NVARCHAR2(2000)");
 
                     b.Property<string>("NarratorId")
+                        .IsRequired()
                         .HasColumnType("NVARCHAR2(450)");
 
                     b.Property<string>("Title")
                         .HasColumnType("NVARCHAR2(2000)");
-
-                    b.Property<int>("TrackNumber")
-                        .HasColumnType("NUMBER(10)");
 
                     b.HasKey("Id");
 
@@ -529,7 +547,9 @@ namespace SlientMoon.Infrastructure.Persistence.Migrations
 
                     b.HasOne("SlientMoon.Domain.Entities.Narrator", "Narrator")
                         .WithMany()
-                        .HasForeignKey("NarratorId");
+                        .HasForeignKey("NarratorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Course");
 

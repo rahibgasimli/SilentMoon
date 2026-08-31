@@ -13,6 +13,7 @@ namespace SlientMoon.WebApi.Controllers
         private IProblemResultFactory _problemFactory;
         protected IProblemResultFactory ProblemFactory =>
             _problemFactory ??= HttpContext.RequestServices.GetRequiredService<IProblemResultFactory>();
+
         private IDispatcher _dispatcher;
         protected IDispatcher Dispatcher =>
             _dispatcher ??= HttpContext.RequestServices.GetRequiredService<IDispatcher>();

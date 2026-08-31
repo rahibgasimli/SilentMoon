@@ -164,33 +164,21 @@ namespace SlientMoon.Infrastructure.Persistence.Seed
 
             var normalizedEmail = email.Trim().ToLower();
 
-            var existing = await context.Users
-                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
+            var exists = await context.Admins
+                .AnyAsync(a => a.Email.ToLower() == normalizedEmail);
 
+            if (exists) return;
 
-            if (existing != null)
-            {
-                if (existing.Role != UserRole.Admin)
-                {
-                    existing.Role = UserRole.Admin;
-                    await context.SaveChangesAsync();
-                }
-                return;
-            }
-
-            var admin = new ApplicationUser
+            var admin = new Admin
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = configuration["APIAppSettings:AdminSeed:Name"] ?? "System Admin",
                 Email = normalizedEmail,
                 PasswordHash = passwordHasher.Hash(password),
-                EmailVerified = true,
-                Role = UserRole.Admin,
-                LoginType = LoginType.Normal,
                 CreatedAt = dateTimeService.NowUtc
             };
 
-            await context.Users.AddAsync(admin);
+            await context.Admins.AddAsync(admin);
             await context.SaveChangesAsync();
         }
     }

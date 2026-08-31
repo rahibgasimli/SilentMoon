@@ -24,6 +24,7 @@ namespace SlientMoon.Infrastructure.Persistence.Repositories.Admin
             c.""Id""          AS ""Id"",
             c.""Title""       AS ""Title"",
             c.""Subtitle""    AS ""Subtitle"",
+            c.""Description"" AS ""Description"",
             c.""ImageUrl""    AS ""ImageUrl"",
             c.""DurationSec"" AS ""DurationSec"",
             c.""IsFeatured""  AS ""IsFeatured"",

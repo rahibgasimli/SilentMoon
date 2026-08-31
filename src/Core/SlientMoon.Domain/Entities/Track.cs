@@ -9,13 +9,11 @@ namespace SlientMoon.Domain.Entities
         public string AudioUrl { get; set; }
         public string MimeType { get; set; } = "audio/mpeg";
         public long FileSizeBytes { get; set; }
-        public string? ImageUrl { get; set; }
-        public int TrackNumber { get; set; }
 
         public string CourseId { get; set; } = string.Empty;
         public Course Course { get; set; } = null!;
 
-        public string? NarratorId { get; set; }
-        public Narrator? Narrator { get; set; }
+        public string NarratorId { get; set; } = string.Empty;
+        public Narrator Narrator { get; set; } = null!;
     }
 }

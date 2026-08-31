@@ -8,5 +8,7 @@
         public bool SSL { get; set; }
         public string ImageBucket { get; set; }
         public string AudioBucket { get; set; }
+
+        public int PresignedUrlExpirySeconds { get; set; } = 900;
     }
 }

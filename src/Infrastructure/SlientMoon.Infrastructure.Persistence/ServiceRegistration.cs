@@ -58,7 +58,6 @@ namespace SlientMoon.Infrastructure.Persistence
             services.AddScoped<IDapper, DapperClass>();
             services.AddScoped<IPomodoroRepository, PomodoroRepository>();
             services.AddScoped<IReminderRepository, ReminderRepository>();
-            services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddTransient<IUserService, UserService>();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
             services.AddScoped<ITopicRepository, TopicRepository>();
@@ -67,7 +66,7 @@ namespace SlientMoon.Infrastructure.Persistence
             services.AddScoped<IStorageService, MinioStorageService>();
             services.AddScoped<IDailyThoughtRepository, DailyThoughtRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IFavoriteRepository, FavoriteRepository>();
+            services.AddScoped<IAdminRepository, AdminRepository>();
             services.AddScoped<IPasswordHasher, PasswordHasherService>();
             services.AddScoped<ILanguageService, LanguageService>();
             services.AddScoped<ITranslationService, TranslationService>();

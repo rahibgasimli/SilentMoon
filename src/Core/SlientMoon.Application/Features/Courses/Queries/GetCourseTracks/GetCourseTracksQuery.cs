@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace SlientMoon.Application.Features.Courses.Queries.GetCourseTracks
 {
-    public record GetCourseTracksQuery(string CourseId, Gender? NarratorGender) : IQuery<List<CourseTrackDto>>;
+    public record GetCourseTracksQuery(string CourseId, Gender? NarratorGender) : IQuery<List<TrackDetailDto>>;
 
-    public class GetCourseTracksQueryHandler : IQueryHandler<GetCourseTracksQuery, List<CourseTrackDto>>
+    public class GetCourseTracksQueryHandler : IQueryHandler<GetCourseTracksQuery, List<TrackDetailDto>>
     {
         private readonly IUow _uow;
         private readonly IAppLogger<GetCourseTracksQueryHandler> _logger;
@@ -25,7 +25,7 @@ namespace SlientMoon.Application.Features.Courses.Queries.GetCourseTracks
             _logger = logger;
         }
 
-        public async Task<Result<List<CourseTrackDto>>> Handle(GetCourseTracksQuery query, CancellationToken ct)
+        public async Task<Result<List<TrackDetailDto>>> Handle(GetCourseTracksQuery query, CancellationToken ct)
         {
             _logger.LogInformation("GetCourseTracks started. CourseId: {CourseId}, GenderFilter: {Narrator}", query.CourseId, query.NarratorGender);
 
@@ -54,7 +54,7 @@ namespace SlientMoon.Application.Features.Courses.Queries.GetCourseTracks
             }
 
             var tracks = await tracksQuery
-                .Select(t => new CourseTrackDto
+                .Select(t => new TrackDetailDto
                 {
                     Id = t.Id,
                     CourseId = t.CourseId,
@@ -64,8 +64,6 @@ namespace SlientMoon.Application.Features.Courses.Queries.GetCourseTracks
                     AudioUrl = t.AudioUrl,
                     MimeType = t.MimeType,
                     FileSizeBytes = t.FileSizeBytes,
-                    ImageUrl = t.ImageUrl ?? string.Empty,
-                    TrackNumber = t.TrackNumber
                 })
                 .ToListAsync(ct);
 

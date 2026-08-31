@@ -112,7 +112,6 @@ namespace SlientMoon.Application.Features.Search.Queries.Search
                 CourseId = t.CourseId,
                 DurationSec = t.DurationSec,
                 AudioUrl = t.AudioUrl,
-                ImageUrl = t.ImageUrl
             }));
 
             var reminders = await _uow.GenericRepository<Reminder>()

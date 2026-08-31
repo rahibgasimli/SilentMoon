@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using SlientMoon.Application.Interfaces.Repositories;
+using SlientMoon.Domain.Entities;
 using SlientMoon.Infrastructure.Persistence.Contexts;
 using SlientMoon.Infrastructure.Persistence.Repositories;
 using System;
@@ -16,22 +17,24 @@ public class Uow : IUow
     public IPomodoroRepository PomodoroRepository { get; }
     public ITopicRepository TopicRepository { get; }
     public IUserRepository UserRepository { get; }
-    public ICategoryRepository CategoryRepository { get; }
+    public IAdminRepository AdminRepository { get; }
+    public IGenericRepository<Category> CategoryRepository { get; }
     public IReminderRepository ReminderRepository { get; }
     public ICourseRepository CourseRepository { get; }
-    public IFavoriteRepository FavoriteRepository { get; }
+    public IGenericRepository<Favorite> FavoriteRepository { get; }
     public IDailyThoughtRepository DailyThoughtRepository { get; }
 
     public Uow(
         AppDbContext context,
         IPomodoroRepository pomodoroRepository,
         IUserRepository userRepository,
+        IAdminRepository adminRepository,
         ITopicRepository topicRepository,
         ICourseRepository courseRepository,
         IDailyThoughtRepository dailyThoughtRepository,
-        ICategoryRepository categoryRepository,
+        IGenericRepository<Category> categoryRepository,
         IReminderRepository reminderRepository,
-        IFavoriteRepository favoriteRepository)
+        IGenericRepository<Favorite> favoriteRepository)
     {
         _context = context;
         TopicRepository = topicRepository;
@@ -39,6 +42,7 @@ public class Uow : IUow
         DailyThoughtRepository = dailyThoughtRepository;
         PomodoroRepository = pomodoroRepository;
         UserRepository = userRepository;
+        AdminRepository = adminRepository;
         CategoryRepository = categoryRepository;
         ReminderRepository = reminderRepository;
         FavoriteRepository = favoriteRepository;

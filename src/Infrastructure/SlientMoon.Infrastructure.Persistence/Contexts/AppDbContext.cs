@@ -10,6 +10,7 @@ namespace SlientMoon.Infrastructure.Persistence.Contexts
         }
 
         public DbSet<ApplicationUser> Users { get; set; }
+        public DbSet<Admin> Admins { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Topic> Topics { get; set; }
         public DbSet<UserTopic> UserTopics { get; set; }
