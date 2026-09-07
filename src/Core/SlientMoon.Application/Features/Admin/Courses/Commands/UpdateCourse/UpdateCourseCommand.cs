@@ -20,9 +20,8 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.UpdateCourse
         public bool IsFeatured { get; set; }
         public string CategoryId { get; set; }
 
-        public AdminCourseTranslationInput En { get; set; }
-        public AdminCourseTranslationInput Az { get; set; }
-        public AdminCourseTranslationInput Ru { get; set; }
+
+        public Dictionary<LanguageCode, AdminCourseTranslationInput> Languages { get; set; }
     }
 
     public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand, bool>
@@ -53,44 +52,26 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.UpdateCourse
                 DurationSec = command.DurationSec,
                 IsFeatured = command.IsFeatured,
                 CategoryId = command.CategoryId,
-                En = command.En,
-                Az = command.Az,
-                Ru = command.Ru
+                Languages = command.Languages,
             };
 
             await _adminCourseRepository.UpdateCourseAsync(command.Id, input, ct);
 
-            await SaveTranslationIfPresentAsync(command.Id, LanguageCode.EN, command.En, ct);
-            await SaveTranslationIfPresentAsync(command.Id, LanguageCode.AZ, command.Az, ct);
-            await SaveTranslationIfPresentAsync(command.Id, LanguageCode.RU, command.Ru, ct);
+            await _translationService.SaveAllTranslationsAsync<Course, AdminCourseTranslationInput>(
+                command.Id,
+                command.Languages,
+                c => new Dictionary<TranslatableField, string>
+                {
+                    { TranslatableField.Title, c.Title },
+                    { TranslatableField.Subtitle, c.Subtitle },
+                    { TranslatableField.Description, c.Description }
+                },
+                ct);
 
             _logger.LogInformation("UpdateCourse completed. CourseId: {CourseId}", command.Id);
 
             return true;
 
-        }
-
-        private async Task SaveTranslationIfPresentAsync(
-    string courseId, LanguageCode languageCode, AdminCourseTranslationInput translation, CancellationToken ct)
-        {
-            if (translation is null)
-                return;
-
-            var propertyValues = new Dictionary<TranslatableField, string>();
-
-            if (!string.IsNullOrWhiteSpace(translation.Title))
-                propertyValues[TranslatableField.Title] = translation.Title;
-
-            if (!string.IsNullOrWhiteSpace(translation.Subtitle))
-                propertyValues[TranslatableField.Subtitle] = translation.Subtitle;
-
-            if (!string.IsNullOrWhiteSpace(translation.Description))
-                propertyValues[TranslatableField.Description] = translation.Description;
-
-            if (propertyValues.Count == 0)
-                return;
-
-            await _translationService.SaveTranslationsAsync<Course>(courseId, languageCode, propertyValues, ct);
         }
     }
 }

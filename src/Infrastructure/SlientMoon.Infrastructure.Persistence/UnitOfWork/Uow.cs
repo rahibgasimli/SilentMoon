@@ -18,9 +18,11 @@ public class Uow : IUow
     public ITopicRepository TopicRepository { get; }
     public IUserRepository UserRepository { get; }
     public IAdminRepository AdminRepository { get; }
-    public IGenericRepository<Category> CategoryRepository { get; }
+    public ICategoryRepository CategoryRepository { get; }
+    public ICategoryTypeRepository CategoryTypeRepository { get; }
     public IReminderRepository ReminderRepository { get; }
     public ICourseRepository CourseRepository { get; }
+    public ITrackRepository TrackRepository { get; }
     public IGenericRepository<Favorite> FavoriteRepository { get; }
     public IDailyThoughtRepository DailyThoughtRepository { get; }
 
@@ -31,19 +33,23 @@ public class Uow : IUow
         IAdminRepository adminRepository,
         ITopicRepository topicRepository,
         ICourseRepository courseRepository,
+        ITrackRepository trackRepository,
         IDailyThoughtRepository dailyThoughtRepository,
-        IGenericRepository<Category> categoryRepository,
+        ICategoryRepository categoryRepository,
+        ICategoryTypeRepository categoryTypeRepository,
         IReminderRepository reminderRepository,
         IGenericRepository<Favorite> favoriteRepository)
     {
         _context = context;
         TopicRepository = topicRepository;
         CourseRepository = courseRepository;
+        TrackRepository = trackRepository;
         DailyThoughtRepository = dailyThoughtRepository;
         PomodoroRepository = pomodoroRepository;
         UserRepository = userRepository;
         AdminRepository = adminRepository;
         CategoryRepository = categoryRepository;
+        CategoryTypeRepository = categoryTypeRepository;
         ReminderRepository = reminderRepository;
         FavoriteRepository = favoriteRepository;
     }

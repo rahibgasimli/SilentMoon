@@ -9,7 +9,10 @@ namespace SlientMoon.Application.Mappings
 {
     public static class HomeFeedMappingExtensions
     {
-        public static CourseDto ToHomeCourseDto(this Course course, Dictionary<string, string>? translations = null)
+        public static CourseDto ToHomeCourseDto(
+            this Course course,
+            Dictionary<string, string>? translations = null,
+            int? trackCount = null)
         {
             return new CourseDto
             {
@@ -23,7 +26,7 @@ namespace SlientMoon.Application.Mappings
                 IsFeatured = course.IsFeatured,
                 CreatedAt = course.CreatedAt,
                 CategoryId = course.CategoryId,
-                TrackCount = course.Tracks != null ? course.Tracks.Count : 0,
+                TrackCount = trackCount ?? (course.Tracks != null ? course.Tracks.Count : 0),
                 Narrators = course.CourseNarrators != null
                     ? course.CourseNarrators
                         .Where(cn => cn.Narrator != null)

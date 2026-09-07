@@ -24,17 +24,22 @@ namespace SlientMoon.Application.Features.Storage.Commands.UploadFile
     {
         private readonly IStorageService _storageService;
         private readonly IUow _uow;
+        private readonly ICurrentUserService _currentUserService;
 
         public UploadFileCommandHandler(
             IStorageService storageService,
-            IUow uow)
+            IUow uow,
+            ICurrentUserService currentUserService)
         {
             _storageService = storageService;
             _uow = uow;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<UploadFileResponseDto>> Handle(UploadFileCommand command, CancellationToken ct)
         {
+            _currentUserService.GetUser();
+
             if(command.Stream == null || command.Stream.Length == 0)
                 return StorageErrors.FileEmpty;
 

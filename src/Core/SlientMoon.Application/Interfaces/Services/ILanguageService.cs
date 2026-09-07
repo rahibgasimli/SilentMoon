@@ -5,5 +5,6 @@ namespace SlientMoon.Application.Interfaces.Services
     public interface ILanguageService
     {
         LanguageCode ValidateLanguage(string? language);
+        LanguageCode GetCurrentLanguage();
     }
 }

@@ -1,4 +1,7 @@
-﻿namespace SlientMoon.Application.DTOs.Admin
+﻿using SlientMoon.Domain.Enums;
+using System.Collections.Generic;
+
+namespace SlientMoon.Application.DTOs.Admin
 {
     public class AdminCourseInput
     {
@@ -6,9 +9,6 @@
         public int DurationSec { get; set; }
         public bool IsFeatured { get; set; }
         public string CategoryId { get; set; }
-
-        public AdminCourseTranslationInput En { get; set; }
-        public AdminCourseTranslationInput Az { get; set; }
-        public AdminCourseTranslationInput Ru { get; set; }
+        public Dictionary<LanguageCode, AdminCourseTranslationInput> Languages { get; set; }
     }
 }

@@ -1,0 +1,67 @@
+﻿@model SlientMoon.Application.DTOs.Common.PagedResult<SlientMoon.Application.DTOs.Categories.CategoryListItemDto>
+
+@{
+    ViewData["Title"] = "Categories";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Categories</h1>
+    <a class="btn btn-primary" asp-action="Create">+ Yeni category</a>
+</div>
+
+<form method="get" class="mb-3 d-flex gap-2">
+    <input type="text" name="search" value="@ViewBag.Search" class="form-control" placeholder="Ada görə axtar..." style="max-width: 300px;" />
+    <button type="submit" class="btn btn-outline-secondary">Axtar</button>
+</form>
+
+<table class="table table-hover align-middle">
+    <thead>
+        <tr>
+            <th>Ad</th>
+            <th>Slug</th>
+            <th>Category Type</th>
+            <th>Icon</th>
+            <th>Yaradılıb</th>
+            <th>Əməliyyat</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var category in Model.Data)
+        {
+            <tr>
+                <td>@category.Name</td>
+                <td>@category.Slug</td>
+                <td>@category.CategoryTypeName</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(category.IconUrl))
+                    {
+                        <span class="text-muted small">@category.IconUrl</span>
+                    }
+                </td>
+                <td>@category.CreatedAt.ToString("dd.MM.yyyy")</td>
+                <td style="width: 160px;">
+                    <a asp-action="Edit" asp-route-id="@category.Id" class="btn btn-sm btn-outline-primary">Düzəliş et</a>
+                    <form asp-action="Delete" asp-route-id="@category.Id" method="post" class="d-inline"
+                          onsubmit="return confirm('&quot;@category.Name&quot; category-sini silmək istədiyinizə əminsiniz?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (Model.Meta.TotalPages > 1)
+{
+    <nav>
+        <ul class="pagination">
+            @for (int i = 1; i <= Model.Meta.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.Meta.Page ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-search="@ViewBag.Search">@i</a>
+                </li>
+            }
+        </ul>
+    </nav>
+}

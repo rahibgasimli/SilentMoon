@@ -12,8 +12,10 @@ public interface IUow : IDisposable
     IAdminRepository AdminRepository { get; }
     ITopicRepository TopicRepository { get; }
     IReminderRepository ReminderRepository { get; }
-    IGenericRepository<Category> CategoryRepository { get; }
+    ICategoryRepository CategoryRepository { get; }
+    ICategoryTypeRepository CategoryTypeRepository { get; }
     ICourseRepository CourseRepository { get; }
+    ITrackRepository TrackRepository { get; }
     IDailyThoughtRepository DailyThoughtRepository { get; }
     IGenericRepository<Favorite> FavoriteRepository { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

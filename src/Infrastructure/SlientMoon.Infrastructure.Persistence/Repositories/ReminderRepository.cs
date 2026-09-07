@@ -16,7 +16,6 @@ namespace SlientMoon.Infrastructure.Persistence.Repositories
         }
         public async Task<List<Reminder>> GetUserRemindersAsync(string userId)
         {
-            // app db de dbset elemeyim meselehedir yoxsa bu formada etmeyim? 
             return await _dbSet
                 .Where(r => r.UserId == userId)
                 .OrderByDescending(r => r.CreatedAt)

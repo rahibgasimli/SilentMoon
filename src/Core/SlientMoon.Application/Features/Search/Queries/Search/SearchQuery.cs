@@ -1,9 +1,12 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Microsoft.EntityFrameworkCore;
+using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.DTOs.Common;
 using SlientMoon.Application.DTOs.Search;
 using SlientMoon.Application.Interfaces.Logging;
+using SlientMoon.Application.Interfaces.Services;
 using SlientMoon.Domain.Entities;
+using SlientMoon.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,16 +27,26 @@ namespace SlientMoon.Application.Features.Search.Queries.Search
     {
         private readonly IUow _uow;
         private readonly IAppLogger<SearchQueryHandler> _logger;
+        private readonly ILanguageService _languageService;
+        private readonly ITranslationService _translationService;
 
-        public SearchQueryHandler(IUow uow, IAppLogger<SearchQueryHandler> logger)
+        public SearchQueryHandler(
+            IUow uow,
+            IAppLogger<SearchQueryHandler> logger,
+            ILanguageService languageService,
+            ITranslationService translationService)
         {
             _uow = uow;
             _logger = logger;
+            _languageService = languageService;
+            _translationService = translationService;
         }
 
         public async Task<Result<SearchResponseDto>> Handle(SearchQuery query, CancellationToken ct)
         {
             _logger.LogInformation("Universal search started. Query: {Q}", query.Q);
+
+            LanguageCode currentLang = _languageService.GetCurrentLanguage();
 
             var searchTerm = query.Q.Trim().ToLower();
             var searchResults = new List<SearchResultItemDto>();
@@ -50,11 +63,58 @@ namespace SlientMoon.Application.Features.Search.Queries.Search
                                         (c.Description != null && c.Description.ToLower().Contains(searchTerm)))
                             .ToListAsync(ct);
 
+            var categories = await _uow.GenericRepository<Category>()
+                .GetQueryable()
+                .AsNoTracking()
+                .Include(c => c.CategoryType)
+                .Where(c => c.Name.ToLower().Contains(searchTerm))
+                .ToListAsync(ct);
+
+            var topics = await _uow.GenericRepository<Topic>()
+                .GetQueryable()
+                .AsNoTracking()
+                .Where(t => t.Title.ToLower().Contains(searchTerm))
+                .ToListAsync(ct);
+
+            var tracks = await _uow.GenericRepository<Track>()
+                .GetQueryable()
+                .AsNoTracking()
+                .Include(t => t.Narrator)
+                .Where(t => t.Title.ToLower().Contains(searchTerm))
+                .ToListAsync(ct);
+
+            var reminders = await _uow.GenericRepository<Reminder>()
+                .GetQueryable()
+                .AsNoTracking()
+                .Where(r => r.Label != null && r.Label.ToLower().Contains(searchTerm))
+                .ToListAsync(ct);
+
+            Dictionary<string, string>? translations = null;
+            if (currentLang != LanguageCode.EN)
+            {
+                var keys = new List<string>();
+
+                if (courses.Any())
+                    keys.AddRange(courses.GetTranslationKeys(
+                        nameof(Course.Title),
+                        nameof(Course.Subtitle),
+                        nameof(Course.Description)));
+
+                if (categories.Any())
+                    keys.AddRange(categories.GetTranslationKeys(nameof(Category.Name)));
+
+                if (tracks.Any())
+                    keys.AddRange(tracks.GetTranslationKeys(nameof(Track.Title)));
+
+                if (keys.Any())
+                    translations = await _translationService.GetTranslationsAsync(keys, currentLang, ct);
+            }
+
             searchResults.AddRange(courses.Select(c => new SearchResultItemDto
             {
                 Id = c.Id,
-                Title = c.Title,
-                Subtitle = c.Subtitle,
+                Title = c.GetTranslation(x => x.Title, translations),
+                Subtitle = c.GetTranslation(x => x.Subtitle, translations),
                 Type = c.Category?.CategoryType?.Slug?.ToLower(),
                 CategoryId = c.CategoryId,
                 ImageUrl = c.ImageUrl,
@@ -67,27 +127,14 @@ namespace SlientMoon.Application.Features.Search.Queries.Search
                     .ToList()
             }));
 
-            var categories = await _uow.GenericRepository<Category>()
-                .GetQueryable()
-                .AsNoTracking()
-                .Include(c => c.CategoryType)
-                .Where(c => c.Name.ToLower().Contains(searchTerm))
-                .ToListAsync(ct);
-
             searchResults.AddRange(categories.Select(c => new SearchResultItemDto
             {
                 Id = c.Id,
-                Title = c.Name,
+                Title = c.GetTranslation(x => x.Name, translations),
                 Subtitle = c.CategoryType?.Name,
                 Type = "category",
                 ImageUrl = c.IconUrl
             }));
-
-            var topics = await _uow.GenericRepository<Topic>()
-                .GetQueryable()
-                .AsNoTracking()
-                .Where(t => t.Title.ToLower().Contains(searchTerm))
-                .ToListAsync(ct);
 
             searchResults.AddRange(topics.Select(t => new SearchResultItemDto
             {
@@ -96,29 +143,16 @@ namespace SlientMoon.Application.Features.Search.Queries.Search
                 Type = "topic"
             }));
 
-            var tracks = await _uow.GenericRepository<Track>()
-                .GetQueryable()
-                .AsNoTracking()
-                .Include(t => t.Narrator)
-                .Where(t => t.Title.ToLower().Contains(searchTerm))
-                .ToListAsync(ct);
-
             searchResults.AddRange(tracks.Select(t => new SearchResultItemDto
             {
                 Id = t.Id,
-                Title = t.Title,
+                Title = t.GetTranslation(x => x.Title, translations),
                 Subtitle = t.Narrator?.Name,
                 Type = "track",
                 CourseId = t.CourseId,
                 DurationSec = t.DurationSec,
                 AudioUrl = t.AudioUrl,
             }));
-
-            var reminders = await _uow.GenericRepository<Reminder>()
-                .GetQueryable()
-                .AsNoTracking()
-                .Where(r => r.Label != null && r.Label.ToLower().Contains(searchTerm))
-                .ToListAsync(ct);
 
             searchResults.AddRange(reminders.Select(r => new SearchResultItemDto
             {
@@ -138,6 +172,8 @@ namespace SlientMoon.Application.Features.Search.Queries.Search
                 .Take(query.Limit)
                 .ToList();
 
+            _logger.LogInformation("Universal search completed. Found {Total} items. Language: {Lang}", totalItems, currentLang);
+
             return new SearchResponseDto
             {
                 Query = query.Q,
@@ -153,4 +189,3 @@ namespace SlientMoon.Application.Features.Search.Queries.Search
         }
     }
     }
-

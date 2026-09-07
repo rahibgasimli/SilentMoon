@@ -2,6 +2,7 @@
 using SlientMoon.Application.DTOs.Admin;
 using SlientMoon.Application.DTOs.Common;
 using SlientMoon.Application.Interfaces.Repositories;
+using SlientMoon.Domain.Enums;
 using SlientMoon.Infrastructure.Persistence.Dapper;
 using System;
 using System.Collections.Generic;
@@ -156,10 +157,12 @@ namespace SlientMoon.Infrastructure.Persistence.Repositories.Admin
 
         private static DynamicParameters BuildParameters(AdminCourseInput course)
         {
+            course.Languages.TryGetValue(LanguageCode.EN, out var en);
+
             var parameters = new DynamicParameters();
-            parameters.Add("P_TITLE", course.En.Title);
-            parameters.Add("P_SUBTITLE", course.En.Subtitle);
-            parameters.Add("P_DESCRIPTION", course.En.Description);
+            parameters.Add("P_TITLE", en?.Title);
+            parameters.Add("P_SUBTITLE", en?.Subtitle);
+            parameters.Add("P_DESCRIPTION", en?.Description);
             parameters.Add("P_IMAGEURL", course.ImageUrl);
             parameters.Add("P_DURATIONSEC", course.DurationSec);
             parameters.Add("P_ISFEATURED", course.IsFeatured ? 1 : 0);

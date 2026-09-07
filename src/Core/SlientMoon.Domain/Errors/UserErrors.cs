@@ -33,6 +33,10 @@ namespace SlientMoon.Domain.Errors
            "Users.EmailAlreadyVerified",
            "This email address has already been verified");
 
+        public static readonly Error InvalidGoogleToken = Error.Unauthorized(
+            "Users.InvalidGoogleToken",
+            "The provided Google token is invalid or expired");
+
     }
 
 }

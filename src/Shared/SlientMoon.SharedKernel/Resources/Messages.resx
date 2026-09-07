@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -192,6 +192,9 @@
   <data name="ErrorType.Validation" xml:space="preserve">
     <value>Validation Error.</value>
   </data>
+  <data name="ErrorType.ValidationDetail" xml:space="preserve">
+    <value>One or more validation errors occurred.</value>
+  </data>
   <data name="ErrorType.InvalidRequest" xml:space="preserve">
     <value>Invalid request provided.</value>
   </data>
@@ -377,6 +380,33 @@
   </data>
   <data name="Reminder.NotFound" xml:space="preserve">
     <value>Reminder not found.</value>
+  </data>
+  <data name="Admins.InvalidCredentials" xml:space="preserve">
+    <value>Invalid email or password.</value>
+  </data>
+  <data name="Category.NotFound" xml:space="preserve">
+    <value>Category not found.</value>
+  </data>
+  <data name="CategoryType.NotFound" xml:space="preserve">
+    <value>Category type not found.</value>
+  </data>
+  <data name="Storage.FileEmpty" xml:space="preserve">
+    <value>The file to upload cannot be empty.</value>
+  </data>
+  <data name="Storage.InvalidFileName" xml:space="preserve">
+    <value>Invalid or empty file name.</value>
+  </data>
+  <data name="Storage.UnsupportedType" xml:space="preserve">
+    <value>Unsupported storage type.</value>
+  </data>
+  <data name="Storage.FileNotFound" xml:space="preserve">
+    <value>File not found in storage.</value>
+  </data>
+  <data name="Storage.UploadFailed" xml:space="preserve">
+    <value>An error occurred while uploading the file.</value>
+  </data>
+  <data name="Storage.DeleteFailed" xml:space="preserve">
+    <value>An error occurred while deleting the file.</value>
   </data>
   <data name="Greeting.Morning" xml:space="preserve">
     <value>Good Morning</value>

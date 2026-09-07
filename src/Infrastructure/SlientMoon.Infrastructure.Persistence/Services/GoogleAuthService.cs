@@ -11,12 +11,24 @@ namespace SlientMoon.Infrastructure.Persistence.Services
 
         public async Task<Result<GoogleUserPayload>> VerifyTokenAsync(string idToken)
         {
-            var settings = new GoogleJsonWebSignature.ValidationSettings
-            {
-                Audience = new[] { GoogleClientId }
-            };
+            if (string.IsNullOrWhiteSpace(idToken))
+                return UserErrors.InvalidGoogleToken;
 
-            var payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+            GoogleJsonWebSignature.Payload payload;
+
+            try
+            {
+                var settings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { GoogleClientId }
+                };
+
+                payload = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
+            }
+            catch (InvalidJwtException)
+            {
+                return UserErrors.InvalidGoogleToken;
+            }
 
             var googleUser = new GoogleUserPayload
             {

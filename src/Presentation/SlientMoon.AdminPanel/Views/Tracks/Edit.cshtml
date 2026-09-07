@@ -1,0 +1,99 @@
+﻿@model SlientMoon.AdminPanel.Models.Tracks.EditTrackViewModel
+
+@{
+    ViewData["Title"] = "Trackı redaktə et";
+}
+
+<h1 class="h3 mb-4">Trackı redaktə et</h1>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ExistingAudioUrl" />
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-en" type="button">EN</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-az" type="button">AZ</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ru" type="button">RU</button>
+        </li>
+    </ul>
+
+    <div class="tab-content mb-4">
+        <div class="tab-pane fade show active" id="tab-en">
+            <div class="mb-3">
+                <label asp-for="TitleEn" class="form-label">Başlıq (EN) *</label>
+                <input asp-for="TitleEn" class="form-control" />
+                <span asp-validation-for="TitleEn" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-az">
+            <div class="mb-3">
+                <label asp-for="TitleAz" class="form-label">Başlıq (AZ)</label>
+                <input asp-for="TitleAz" class="form-control" />
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-ru">
+            <div class="mb-3">
+                <label asp-for="TitleRu" class="form-label">Başlıq (RU)</label>
+                <input asp-for="TitleRu" class="form-control" />
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="CourseId" class="form-label">Kurs *</label>
+            <select asp-for="CourseId" class="form-select">
+                <option value="">— Seçin —</option>
+                @foreach (var course in Model.CourseOptions)
+                {
+                    <option value="@course.Id" selected="@(course.Id == Model.CourseId)">@course.Title</option>
+                }
+            </select>
+            <span asp-validation-for="CourseId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="NarratorId" class="form-label">Narrator *</label>
+            <select asp-for="NarratorId" class="form-select">
+                <option value="">— Seçin —</option>
+                @foreach (var narrator in Model.NarratorOptions)
+                {
+                    <option value="@narrator.Id" selected="@(narrator.Id == Model.NarratorId)">@narrator.Name (@narrator.Gender)</option>
+                }
+            </select>
+            <span asp-validation-for="NarratorId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="DurationSec" class="form-label">Müddət (saniyə) *</label>
+            <input asp-for="DurationSec" type="number" class="form-control" />
+            <span asp-validation-for="DurationSec" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="AudioFile" class="form-label">Audio fayl</label>
+        @if (!string.IsNullOrEmpty(Model.ExistingAudioUrl))
+        {
+            <div class="text-muted small mb-2">Hazırkı: @Model.ExistingAudioUrl</div>
+        }
+        <input asp-for="AudioFile" type="file" class="form-control" accept="audio/*" />
+        <div class="form-text">Boş buraxsan, mövcud audio fayl saxlanılacaq.</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Yadda saxla</button>
+    <a asp-action="Index" class="btn btn-link">Ləğv et</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

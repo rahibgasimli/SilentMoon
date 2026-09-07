@@ -90,5 +90,30 @@ namespace SlientMoon.Infrastructure.Persistence.Services
             foreach (var translation in translations)
                 _uow.GenericRepository<Translation>().Delete(translation);
         }
+
+        public async Task SaveAllTranslationsAsync<TEntity, TTranslationInput>(
+            string entityId,
+            Dictionary<LanguageCode, TTranslationInput> languages,
+            Func<TTranslationInput, Dictionary<TranslatableField, string>> fieldSelector,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        {
+            if (languages is null)
+                return;
+
+            foreach (var (languageCode, translation) in languages)
+            {
+                if (translation is null)
+                    continue;
+
+                var propertyValues = fieldSelector(translation)
+                    .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))
+                    .ToDictionary(kv => kv.Key, kv => kv.Value);
+
+                if (propertyValues.Count == 0)
+                    continue;
+
+                await SaveTranslationsAsync<TEntity>(entityId, languageCode, propertyValues, cancellationToken);
+            }
+        }
     }
 }

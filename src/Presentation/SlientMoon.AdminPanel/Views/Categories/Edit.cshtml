@@ -1,0 +1,87 @@
+﻿@model SlientMoon.AdminPanel.Models.Categories.EditCategoryViewModel
+
+@{
+    ViewData["Title"] = "Category-ni redaktə et";
+}
+
+<h1 class="h3 mb-4">Category-ni redaktə et</h1>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ExistingIconUrl" />
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-en" type="button">EN</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-az" type="button">AZ</button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ru" type="button">RU</button>
+        </li>
+    </ul>
+
+    <div class="tab-content mb-4">
+        <div class="tab-pane fade show active" id="tab-en">
+            <div class="mb-3">
+                <label asp-for="NameEn" class="form-label">Ad (EN) *</label>
+                <input asp-for="NameEn" class="form-control" />
+                <span asp-validation-for="NameEn" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-az">
+            <div class="mb-3">
+                <label asp-for="NameAz" class="form-label">Ad (AZ)</label>
+                <input asp-for="NameAz" class="form-control" />
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-ru">
+            <div class="mb-3">
+                <label asp-for="NameRu" class="form-label">Ad (RU)</label>
+                <input asp-for="NameRu" class="form-control" />
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="CategoryTypeId" class="form-label">Category Type *</label>
+            <select asp-for="CategoryTypeId" class="form-select">
+                <option value="">— Seçin —</option>
+                @foreach (var categoryType in Model.CategoryTypeOptions)
+                {
+                    <option value="@categoryType.Id" selected="@(categoryType.Id == Model.CategoryTypeId)">@categoryType.Name</option>
+                }
+            </select>
+            <span asp-validation-for="CategoryTypeId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label asp-for="Slug" class="form-label">Slug *</label>
+            <input asp-for="Slug" class="form-control" />
+            <span asp-validation-for="Slug" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="IconFile" class="form-label">Icon</label>
+        @if (!string.IsNullOrEmpty(Model.ExistingIconUrl))
+        {
+            <div class="text-muted small mb-2">Hazırkı: @Model.ExistingIconUrl</div>
+        }
+        <input asp-for="IconFile" type="file" class="form-control" accept="image/*" />
+        <div class="form-text">Boş buraxsan, mövcud icon saxlanılacaq.</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Yadda saxla</button>
+    <a asp-action="Index" class="btn btn-link">Ləğv et</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

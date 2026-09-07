@@ -32,11 +32,11 @@ namespace SlientMoon.WebApi.Extensions
                 {
                     Title = $"{assemblyName} - v{description.ApiVersion} {envBadge}",
                     Version = description.ApiVersion.ToString(),
-                    Description = "This Api will be responsible for overall data distribution and authorization. Created by Nijat <3",
+                    Description = "This Api will be responsible for overall data distribution and authorization.",
                     Contact = new OpenApiContact
                     {
-                        Name = "nijat.net",
-                        Email = "contact@nijat.net",
+                        Name = "Rahib Gasimli",
+                        Email = "rahibqasimli1@gmail.com",
                     }
                 });
             }

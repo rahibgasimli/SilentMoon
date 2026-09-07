@@ -11,6 +11,7 @@ using SlientMoon.Application.Features.Admin.Courses.Queries.GetCategoryOptions;
 using SlientMoon.Application.Features.Admin.Courses.Queries.GetCourseById;
 using SlientMoon.Application.Features.Storage.Commands.UploadFile;
 using SlientMoon.Domain.Enums;
+using System.Collections.Generic;
 
 namespace SlientMoon.AdminPanel.Controllers
 {
@@ -64,30 +65,43 @@ namespace SlientMoon.AdminPanel.Controllers
                 return View(model);
             }
 
+            var languages = new Dictionary<LanguageCode, AdminCourseTranslationInput>
+            {
+                [LanguageCode.EN] = new AdminCourseTranslationInput
+                {
+                    Title = model.TitleEn,
+                    Subtitle = model.SubtitleEn,
+                    Description = model.DescriptionEn
+                }
+            };
+
+            if (!string.IsNullOrWhiteSpace(model.TitleAz))
+            {
+                languages[LanguageCode.AZ] = new AdminCourseTranslationInput
+                {
+                    Title = model.TitleAz,
+                    Subtitle = model.SubtitleAz,
+                    Description = model.DescriptionAz
+                };
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.TitleRu))
+            {
+                languages[LanguageCode.RU] = new AdminCourseTranslationInput
+                {
+                    Title = model.TitleRu,
+                    Subtitle = model.SubtitleRu,
+                    Description = model.DescriptionRu
+                };
+            }
+
             var command = new CreateCourseCommand
             {
                 ImageUrl = uploadResult.Value.FileName,
                 DurationSec = model.DurationSec,
                 IsFeatured = model.IsFeatured,
                 CategoryId = model.CategoryId,
-                En = new AdminCourseTranslationInput
-                {
-                    Title = model.TitleEn,
-                    Subtitle = model.SubtitleEn,
-                    Description = model.DescriptionEn
-                },
-                Az = string.IsNullOrWhiteSpace(model.TitleAz) ? null : new AdminCourseTranslationInput
-                {
-                    Title = model.TitleAz,
-                    Subtitle = model.SubtitleAz,
-                    Description = model.DescriptionAz
-                },
-                Ru = string.IsNullOrWhiteSpace(model.TitleRu) ? null : new AdminCourseTranslationInput
-                {
-                    Title = model.TitleRu,
-                    Subtitle = model.SubtitleRu,
-                    Description = model.DescriptionRu
-                }
+                Languages = languages
             };
 
             var createResult = await Dispatcher.Send(command, ct);
@@ -110,6 +124,10 @@ namespace SlientMoon.AdminPanel.Controllers
                 return NotFound();
 
             var course = result.Value;
+            course.Languages.TryGetValue(LanguageCode.EN, out var en);
+            course.Languages.TryGetValue(LanguageCode.AZ, out var az);
+            course.Languages.TryGetValue(LanguageCode.RU, out var ru);
+
             var model = new EditCourseViewModel
             {
                 Id = id,
@@ -117,15 +135,15 @@ namespace SlientMoon.AdminPanel.Controllers
                 DurationSec = course.DurationSec,
                 IsFeatured = course.IsFeatured,
                 CategoryId = course.CategoryId,
-                TitleEn = course.En.Title,
-                SubtitleEn = course.En.Subtitle,
-                DescriptionEn = course.En.Description,
-                TitleAz = course.Az.Title,
-                SubtitleAz = course.Az.Subtitle,
-                DescriptionAz = course.Az.Description,
-                TitleRu = course.Ru.Title,
-                SubtitleRu = course.Ru.Subtitle,
-                DescriptionRu = course.Ru.Description,
+                TitleEn = en?.Title,
+                SubtitleEn = en?.Subtitle,
+                DescriptionEn = en?.Description,
+                TitleAz = az?.Title,
+                SubtitleAz = az?.Subtitle,
+                DescriptionAz = az?.Description,
+                TitleRu = ru?.Title,
+                SubtitleRu = ru?.Subtitle,
+                DescriptionRu = ru?.Description,
                 CategoryOptions = await GetCategoryOptionsAsync(ct)
             };
 
@@ -164,6 +182,36 @@ namespace SlientMoon.AdminPanel.Controllers
                 imageUrl = uploadResult.Value.FileName;
             }
 
+            var languages = new Dictionary<LanguageCode, AdminCourseTranslationInput>
+            {
+                [LanguageCode.EN] = new AdminCourseTranslationInput
+                {
+                    Title = model.TitleEn,
+                    Subtitle = model.SubtitleEn,
+                    Description = model.DescriptionEn
+                }
+            };
+
+            if (!string.IsNullOrWhiteSpace(model.TitleAz))
+            {
+                languages[LanguageCode.AZ] = new AdminCourseTranslationInput
+                {
+                    Title = model.TitleAz,
+                    Subtitle = model.SubtitleAz,
+                    Description = model.DescriptionAz
+                };
+            }
+
+            if (!string.IsNullOrWhiteSpace(model.TitleRu))
+            {
+                languages[LanguageCode.RU] = new AdminCourseTranslationInput
+                {
+                    Title = model.TitleRu,
+                    Subtitle = model.SubtitleRu,
+                    Description = model.DescriptionRu
+                };
+            }
+
             var command = new UpdateCourseCommand
             {
                 Id = model.Id,
@@ -171,24 +219,7 @@ namespace SlientMoon.AdminPanel.Controllers
                 DurationSec = model.DurationSec,
                 IsFeatured = model.IsFeatured,
                 CategoryId = model.CategoryId,
-                En = new AdminCourseTranslationInput
-                {
-                    Title = model.TitleEn,
-                    Subtitle = model.SubtitleEn,
-                    Description = model.DescriptionEn
-                },
-                Az = string.IsNullOrWhiteSpace(model.TitleAz) ? null : new AdminCourseTranslationInput
-                {
-                    Title = model.TitleAz,
-                    Subtitle = model.SubtitleAz,
-                    Description = model.DescriptionAz
-                },
-                Ru = string.IsNullOrWhiteSpace(model.TitleRu) ? null : new AdminCourseTranslationInput
-                {
-                    Title = model.TitleRu,
-                    Subtitle = model.SubtitleRu,
-                    Description = model.DescriptionRu
-                }
+                Languages = languages
             };
 
             var updateResult = await Dispatcher.Send(command, ct);

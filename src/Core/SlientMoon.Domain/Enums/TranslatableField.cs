@@ -4,6 +4,7 @@
     {
         Title,
         Subtitle,
-        Description
+        Description,
+        Name
     }
 }

@@ -51,30 +51,35 @@ namespace SlientMoon.Application.Features.Admin.Courses.Queries.GetCourseById
                     ? value
                     : null;
 
+            var languages = new Dictionary<LanguageCode, AdminCourseTranslationInput>
+            {
+                [LanguageCode.EN] = new AdminCourseTranslationInput
+                {
+                    Title = course.Title,
+                    Subtitle = course.Subtitle,
+                    Description = course.Description
+                },
+                [LanguageCode.AZ] = new AdminCourseTranslationInput
+                {
+                    Title = Get(azTranslations, TranslatableField.Title),
+                    Subtitle = Get(azTranslations, TranslatableField.Subtitle),
+                    Description = Get(azTranslations, TranslatableField.Description)
+                },
+                [LanguageCode.RU] = new AdminCourseTranslationInput
+                {
+                    Title = Get(ruTranslations, TranslatableField.Title),
+                    Subtitle = Get(ruTranslations, TranslatableField.Subtitle),
+                    Description = Get(ruTranslations, TranslatableField.Description)
+                }
+            };
+
             return new AdminCourseInput
             {
                 ImageUrl = course.ImageUrl,
                 DurationSec = course.DurationSec,
                 IsFeatured = course.IsFeatured,
                 CategoryId = course.CategoryId,
-                En = new AdminCourseTranslationInput
-                {
-                    Title = course.Title,
-                    Subtitle = course.Subtitle,
-                    Description = course.Description,
-                },
-                Az = new AdminCourseTranslationInput
-                {
-                    Title = Get(azTranslations, TranslatableField.Title),
-                    Subtitle = Get(azTranslations, TranslatableField.Subtitle),
-                    Description = Get(azTranslations, TranslatableField.Description),
-                },
-                Ru = new AdminCourseTranslationInput
-                {
-                    Title = Get(ruTranslations, TranslatableField.Title),
-                    Subtitle = Get(ruTranslations, TranslatableField.Subtitle),
-                    Description = Get(ruTranslations, TranslatableField.Description)
-                }
+                Languages = languages
             };
         }
     }
