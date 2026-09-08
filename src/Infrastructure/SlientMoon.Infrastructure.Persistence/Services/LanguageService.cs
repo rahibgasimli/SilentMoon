@@ -1,5 +1,6 @@
 ﻿using SlientMoon.Application.Interfaces.Services;
 using SlientMoon.Domain.Enums;
+using System.Globalization;
 
 namespace SlientMoon.Infrastructure.Persistence.Services
 {
@@ -18,6 +19,11 @@ namespace SlientMoon.Infrastructure.Persistence.Services
                 "ru" => LanguageCode.RU,
                 _ => LanguageCode.EN
             };
+        }
+
+        public LanguageCode GetCurrentLanguage()
+        {
+            return ValidateLanguage(CultureInfo.CurrentCulture.Name);
         }
     }
 }

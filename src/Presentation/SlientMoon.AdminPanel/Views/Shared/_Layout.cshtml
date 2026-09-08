@@ -18,10 +18,14 @@
                    asp-controller="Dashboard" asp-action="Index">Dashboard</a>
                 <a class="admin-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Courses" ? "active" : "")"
                    asp-controller="Courses" asp-action="Index">Courses</a>
+                <a class="admin-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Tracks" ? "active" : "")"
+                   asp-controller="Tracks" asp-action="Index">Tracks</a>
                 <a class="admin-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Categories" ? "active" : "")"
                    asp-controller="Categories" asp-action="Index">Categories</a>
-                <a class="admin-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Users" ? "active" : "")"
-                   asp-controller="Users" asp-action="Index">Users</a>
+                <a class="admin-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "CategoryTypes" ? "active" : "")"
+                   asp-controller="CategoryTypes" asp-action="Index">Category Types</a>
+                <a class="admin-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Narrators" ? "active" : "")"
+                   asp-controller="Narrators" asp-action="Index">Narrators</a>
             </nav>
             <div class="admin-sidebar-footer">
                 <form asp-controller="Account" asp-action="Logout" method="post">

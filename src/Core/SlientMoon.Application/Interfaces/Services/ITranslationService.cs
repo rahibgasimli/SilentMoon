@@ -1,5 +1,6 @@
 ﻿using SlientMoon.Domain.Common;
 using SlientMoon.Domain.Enums;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,7 +17,22 @@ namespace SlientMoon.Application.Interfaces.Services
         Task SaveTranslationsAsync<TEntity>(
             string entityId,
             LanguageCode languageCode,
-            Dictionary<string, string> propertyValues,
+            Dictionary<TranslatableField, string> propertyValues,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity;
+
+        Task DeleteTranslationsAsync<TEntity>(
+            string entityId,
+            IEnumerable<TranslatableField> fields,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity;
+
+        Task SaveAllTranslationsAsync<TEntity>(
+            string entityId,
+            Dictionary<LanguageCode, Dictionary<TranslatableField, string>> languages,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity;
+
+        Task<Dictionary<LanguageCode, Dictionary<TranslatableField, string>>> GetTranslationMapAsync<TEntity>(
+            string entityId,
+            IEnumerable<TranslatableField> fields,
             CancellationToken cancellationToken = default) where TEntity : BaseEntity;
     }
 }

@@ -1,9 +1,14 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Microsoft.EntityFrameworkCore;
+using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.DTOs.Courses;
 using SlientMoon.Application.Interfaces.Logging;
+using SlientMoon.Application.Interfaces.Services;
+using SlientMoon.Application.Mappings;
 using SlientMoon.Domain.Entities;
+using SlientMoon.Domain.Enums;
 using SlientMoon.Domain.Errors;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,55 +30,57 @@ namespace SlientMoon.Application.Features.Courses.Queries.GetCourseById
     {
         private readonly IUow _uow;
         private readonly IAppLogger<GetCourseByIdQueryHandler> _logger;
+        private readonly ILanguageService _languageService;
+        private readonly ITranslationService _translationService;
 
-        public GetCourseByIdQueryHandler(IUow uow, IAppLogger<GetCourseByIdQueryHandler> logger)
+        public GetCourseByIdQueryHandler(
+            IUow uow,
+            IAppLogger<GetCourseByIdQueryHandler> logger,
+            ILanguageService languageService,
+            ITranslationService translationService)
         {
             _uow = uow;
             _logger = logger;
+            _languageService = languageService;
+            _translationService = translationService;
         }
 
         public async Task<Result<CourseDto>> Handle(GetCourseByIdQuery query, CancellationToken ct)
         {
             _logger.LogInformation("GetCourseById started. CourseId: {CourseId}", query.Id);
 
-            var course = await _uow.GenericRepository<Course>()
+            LanguageCode currentLang = _languageService.GetCurrentLanguage();
+
+            var row = await _uow.GenericRepository<Course>()
                 .GetQueryable()
                 .AsNoTracking()
                 .Include(c => c.Category)
-                .Include(c => c.Tracks)
+                    .ThenInclude(cat => cat.CategoryType)
                 .Include(c => c.CourseNarrators)
                     .ThenInclude(cn => cn.Narrator)
-                .FirstOrDefaultAsync(c =>   c.Id == query.Id);
+                .Where(c => c.Id == query.Id)
+                .Select(c => new { Course = c, TrackCount = c.Tracks.Count })
+                .FirstOrDefaultAsync(ct);
 
-            if (course is null)
+            if (row is null)
             {
                 _logger.LogWarning("GetCourseById failed. Course not found: {CourseId}", query.Id);
                 return CourseErrors.NotFound;
             }
 
-            var narratorTypes = course.CourseNarrators
-                .Where(cn => cn.Narrator != null)
-                .Select(cn => cn.Narrator!.Gender.ToString().ToLower())
-                .Distinct()
-                .ToList();
-
-            var dto = new CourseDto
+            Dictionary<string, string>? translations = null;
+            if (currentLang != LanguageCode.EN)
             {
-                Id = course.Id,
-                Title = course.Title,
-                Subtitle = course.Subtitle,
-                Type = course.Category?.CategoryType?.ToString().ToLower(),
-                CategoryId = course.CategoryId,
-                ImageUrl = course.ImageUrl ?? string.Empty,
-                DurationSec = course.DurationSec,
-                IsFeatured = course.IsFeatured,
-                Narrators = narratorTypes,
-                Description = course.Description ?? string.Empty,
-                TrackCount = course.Tracks.Count,
-                CreatedAt = course.CreatedAt
-            };
+                var keys = new[] { row.Course }.GetTranslationKeys(
+                    nameof(Course.Title),
+                    nameof(Course.Subtitle),
+                    nameof(Course.Description)
+                );
 
-            return dto;
+                translations = await _translationService.GetTranslationsAsync(keys, currentLang, ct);
+            }
+
+            return row.Course.ToHomeCourseDto(translations, row.TrackCount);
         }
     }
 }

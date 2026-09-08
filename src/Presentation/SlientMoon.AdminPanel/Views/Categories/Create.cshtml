@@ -1,0 +1,74 @@
+@using SlientMoon.Application.Common.Extensions
+@using SlientMoon.Domain.Constants
+@using SlientMoon.Domain.Enums
+@model SlientMoon.AdminPanel.Models.Categories.CreateCategoryViewModel
+
+@{
+    ViewData["Title"] = "Yeni category";
+    var languages = Enum.GetValues<LanguageCode>();
+}
+
+<h1 class="h3 mb-4">Yeni category</h1>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <ul class="nav nav-tabs mb-3">
+        @foreach (var lang in languages)
+        {
+            <li class="nav-item">
+                <button class="nav-link @(lang == LanguageCode.EN ? "active" : "")"
+                        data-bs-toggle="tab" data-bs-target="#tab-@lang" type="button">@lang</button>
+            </li>
+        }
+    </ul>
+
+    <div class="tab-content mb-4">
+        @foreach (var lang in languages)
+        {
+            <div class="tab-pane fade @(lang == LanguageCode.EN ? "show active" : "")" id="tab-@lang">
+                @foreach (var field in TranslatableFields.Category)
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Ad (@lang) @(lang == LanguageCode.EN ? "*" : "")</label>
+                        <input name="Languages[@lang][@field]" value="@Model.Languages.Get(lang, field)" class="form-control" />
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label asp-for="CategoryTypeId" class="form-label">Category Type *</label>
+            <select asp-for="CategoryTypeId" class="form-select">
+                <option value="">— Seçin —</option>
+                @foreach (var categoryType in Model.CategoryTypeOptions)
+                {
+                    <option value="@categoryType.Id">@categoryType.Name</option>
+                }
+            </select>
+            <span asp-validation-for="CategoryTypeId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label asp-for="Slug" class="form-label">Slug *</label>
+            <input asp-for="Slug" class="form-control" />
+            <span asp-validation-for="Slug" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="IconFile" class="form-label">Icon *</label>
+        <input asp-for="IconFile" type="file" class="form-control" accept="image/*" />
+        <span asp-validation-for="IconFile" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Yarat</button>
+    <a asp-action="Index" class="btn btn-link">Ləğv et</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

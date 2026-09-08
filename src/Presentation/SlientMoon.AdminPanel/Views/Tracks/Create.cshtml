@@ -1,0 +1,86 @@
+@using SlientMoon.Application.Common.Extensions
+@using SlientMoon.Domain.Constants
+@using SlientMoon.Domain.Enums
+@model SlientMoon.AdminPanel.Models.Tracks.CreateTrackViewModel
+
+@{
+    ViewData["Title"] = "Yeni track";
+    var languages = Enum.GetValues<LanguageCode>();
+}
+
+<h1 class="h3 mb-4">Yeni track</h1>
+
+<form asp-action="Create" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <ul class="nav nav-tabs mb-3">
+        @foreach (var lang in languages)
+        {
+            <li class="nav-item">
+                <button class="nav-link @(lang == LanguageCode.EN ? "active" : "")"
+                        data-bs-toggle="tab" data-bs-target="#tab-@lang" type="button">@lang</button>
+            </li>
+        }
+    </ul>
+
+    <div class="tab-content mb-4">
+        @foreach (var lang in languages)
+        {
+            <div class="tab-pane fade @(lang == LanguageCode.EN ? "show active" : "")" id="tab-@lang">
+                @foreach (var field in TranslatableFields.Track)
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Başlıq (@lang) @(lang == LanguageCode.EN ? "*" : "")</label>
+                        <input name="Languages[@lang][@field]" value="@Model.Languages.Get(lang, field)" class="form-control" />
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="CourseId" class="form-label">Kurs *</label>
+            <select asp-for="CourseId" class="form-select">
+                <option value="">— Seçin —</option>
+                @foreach (var course in Model.CourseOptions)
+                {
+                    <option value="@course.Id">@course.Title</option>
+                }
+            </select>
+            <span asp-validation-for="CourseId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="NarratorId" class="form-label">Narrator *</label>
+            <select asp-for="NarratorId" class="form-select">
+                <option value="">— Seçin —</option>
+                @foreach (var narrator in Model.NarratorOptions)
+                {
+                    <option value="@narrator.Id">@narrator.Name (@narrator.Gender)</option>
+                }
+            </select>
+            <span asp-validation-for="NarratorId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="DurationSec" class="form-label">Müddət (saniyə) *</label>
+            <input asp-for="DurationSec" type="number" class="form-control" />
+            <span asp-validation-for="DurationSec" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="AudioFile" class="form-label">Audio fayl *</label>
+        <input asp-for="AudioFile" type="file" class="form-control" accept="audio/*" />
+        <span asp-validation-for="AudioFile" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Yarat</button>
+    <a asp-action="Index" class="btn btn-link">Ləğv et</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

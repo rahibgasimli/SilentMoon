@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SlientMoon.AdminPanel.Models;
+using SlientMoon.Application.Features.Admin.Auth.Commands.AdminLogin;
 using SlientMoon.Application.Features.Auth.Commands.Login;
 using SlientMoon.Application.Interfaces.Services;
 
@@ -51,7 +52,7 @@ namespace SlientMoon.AdminPanel.Controllers
                 return View(model);
             }
 
-            var loginResult = await _dispatcher.Send(new LoginCommand
+            var loginResult = await _dispatcher.Send(new AdminLoginCommand
             {
                 Email = model.Email,
                 Password = model.Password
@@ -65,8 +66,7 @@ namespace SlientMoon.AdminPanel.Controllers
 
             var principal = _jwtTokenService.ValidateToken(loginResult.Value.AccessToken);
 
-            var role = principal?.FindFirst("role")?.Value;
-            if (principal is null || role != "Admin")
+            if (principal is null)
             {
                 ModelState.AddModelError(string.Empty, "Bu panelə girişiniz yoxdur.");
                 return View(model);

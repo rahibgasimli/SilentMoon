@@ -1,8 +1,12 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using Microsoft.EntityFrameworkCore;
+using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.DTOs.Courses;
 using SlientMoon.Application.Interfaces.Logging;
+using SlientMoon.Application.Interfaces.Services;
+using SlientMoon.Application.Mappings;
 using SlientMoon.Domain.Entities;
+using SlientMoon.Domain.Enums;
 using SlientMoon.Domain.Errors;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,16 +23,26 @@ namespace SlientMoon.Application.Features.Courses.Queries.GetRelatedCourses
     {
         private readonly IUow _uow;
         private readonly IAppLogger<GetRelatedCoursesQueryHandler> _logger;
+        private readonly ILanguageService _languageService;
+        private readonly ITranslationService _translationService;
 
-        public GetRelatedCoursesQueryHandler(IUow uow, IAppLogger<GetRelatedCoursesQueryHandler> logger)
+        public GetRelatedCoursesQueryHandler(
+            IUow uow,
+            IAppLogger<GetRelatedCoursesQueryHandler> logger,
+            ILanguageService languageService,
+            ITranslationService translationService)
         {
             _uow = uow;
             _logger = logger;
+            _languageService = languageService;
+            _translationService = translationService;
         }
 
         public async Task<Result<List<CourseDto>>> Handle(GetRelatedCoursesQuery query, CancellationToken ct)
         {
             _logger.LogInformation("GetRelatedCourses started. CourseId: {CourseId}, Limit: {Limit}", query.Id, query.Limit);
+
+            LanguageCode currentLang = _languageService.GetCurrentLanguage();
 
             var currentCourse = await _uow.GenericRepository<Course>()
                 .GetQueryable()
@@ -41,7 +55,7 @@ namespace SlientMoon.Application.Features.Courses.Queries.GetRelatedCourses
                 return CourseErrors.NotFound;
             }
 
-            var relatedCourses = await _uow.GenericRepository<Course>()
+            var rows = await _uow.GenericRepository<Course>()
                 .GetQueryable()
                 .AsNoTracking()
                 .Include(c => c.Category)
@@ -50,15 +64,16 @@ namespace SlientMoon.Application.Features.Courses.Queries.GetRelatedCourses
                     .ThenInclude(cn => cn.Narrator)
                 .Where(c => c.Id != query.Id && c.CategoryId == currentCourse.CategoryId)
                 .Take(query.Limit)
+                .Select(c => new { Course = c, TrackCount = c.Tracks.Count })
                 .ToListAsync(ct);
 
-            if (relatedCourses.Count < query.Limit)
+            if (rows.Count < query.Limit)
             {
-                var remainingLimit = query.Limit - relatedCourses.Count;
-                var existingIds = relatedCourses.Select(c => c.Id).ToList();
+                var remainingLimit = query.Limit - rows.Count;
+                var existingIds = rows.Select(r => r.Course.Id).ToList();
                 existingIds.Add(query.Id);
 
-                var fallbackCourses = await _uow.GenericRepository<Course>()
+                var fallbackRows = await _uow.GenericRepository<Course>()
                     .GetQueryable()
                     .AsNoTracking()
                     .Include(c => c.Category)
@@ -67,29 +82,29 @@ namespace SlientMoon.Application.Features.Courses.Queries.GetRelatedCourses
                         .ThenInclude(cn => cn.Narrator)
                     .Where(c => !existingIds.Contains(c.Id))
                     .Take(remainingLimit)
+                    .Select(c => new { Course = c, TrackCount = c.Tracks.Count })
                     .ToListAsync(ct);
 
-                relatedCourses.AddRange(fallbackCourses);
+                rows.AddRange(fallbackRows);
             }
 
-            var dtos = relatedCourses.Select(c => new CourseDto
+            Dictionary<string, string>? translations = null;
+            if (currentLang != LanguageCode.EN && rows.Any())
             {
-                Id = c.Id,
-                Title = c.Title,
-                Subtitle = c.Subtitle,
-                Type = c.Category?.CategoryType?.Slug,
-                CategoryId = c.CategoryId,
-                ImageUrl = c.ImageUrl ?? string.Empty,
-                DurationSec = c.DurationSec,
-                IsFeatured = c.IsFeatured,
-                Narrators = c.CourseNarrators
-                    .Where(cn => cn.Narrator != null)
-                    .Select(cn => cn.Narrator!.Gender.ToString().ToLower())
-                    .Distinct()
-                    .ToList(),
-                Description = c.Description ?? string.Empty,
-                CreatedAt = c.CreatedAt
-            }).ToList();
+                var keys = rows.Select(r => r.Course).GetTranslationKeys(
+                    nameof(Course.Title),
+                    nameof(Course.Subtitle),
+                    nameof(Course.Description)
+                );
+
+                translations = await _translationService.GetTranslationsAsync(keys, currentLang, ct);
+            }
+
+            var dtos = rows
+                .Select(r => r.Course.ToHomeCourseDto(translations, r.TrackCount))
+                .ToList();
+
+            _logger.LogInformation("GetRelatedCourses completed. Returned {Count} items. Language: {Lang}", dtos.Count, currentLang);
 
             return dtos;
         }

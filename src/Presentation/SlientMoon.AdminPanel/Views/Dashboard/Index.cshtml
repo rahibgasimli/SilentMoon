@@ -1,21 +1,76 @@
-﻿@{
+@model SlientMoon.AdminPanel.Models.Dashboard.DashboardViewModel
+
+@{
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="container py-4">
-    <h1 class="mb-4">Admin Panel</h1>
+<h1 class="h3 mb-4">Dashboard</h1>
 
-    @if (ViewBag.IsSuccess == true)
-    {
-        <div class="alert alert-success">
-            <strong>Bağlantı işləyir.</strong>
-            Bazada <strong>@ViewBag.CategoryCount</strong> kateqoriya tapıldı.
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-muted small">Courses</div>
+                <div class="display-6">@Model.CourseCount</div>
+            </div>
         </div>
-    }
-    else
-    {
-        <div class="alert alert-danger">
-            <strong>Xəta:</strong> @ViewBag.ErrorCode
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-muted small">Categories</div>
+                <div class="display-6">@Model.CategoryCount</div>
+            </div>
         </div>
-    }
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-muted small">Category Types</div>
+                <div class="display-6">@Model.CategoryTypeCount</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <div class="text-muted small">Tracks</div>
+                <div class="display-6">@Model.TrackCount</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Ən son əlavə olunmuş kurslar</div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr>
+                    <th>Başlıq</th>
+                    <th>Category</th>
+                    <th>Yaradılıb</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.RecentCourses.Count == 0)
+                {
+                    <tr>
+                        <td colspan="3" class="text-muted text-center py-3">Hələ kurs yoxdur.</td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var course in Model.RecentCourses)
+                    {
+                        <tr>
+                            <td>@course.Title</td>
+                            <td>@course.CategoryName</td>
+                            <td>@course.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

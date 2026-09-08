@@ -1,4 +1,6 @@
 ﻿using FluentValidation;
+using SlientMoon.Application.Common.Extensions;
+using SlientMoon.Domain.Enums;
 
 namespace SlientMoon.Application.Features.Admin.Courses.Commands.CreateCourse
 {
@@ -12,34 +14,40 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.CreateCourse
             RuleFor(x => x.DurationSec)
                 .GreaterThan(0).WithMessage("Müddət 0-dan böyük olmalıdır");
 
-            RuleFor(x => x.En)
-                .NotNull().WithMessage("İngilis dili məlumatları məcburidir");
+            RuleFor(x => x.Languages)
+                .Must(languages => languages != null && languages.ContainsKey(LanguageCode.EN))
+                .WithMessage("İngilis dili məlumatları məcburidir");
 
-            When(x => x.En != null, () =>
+            When(x => x.Languages != null && x.Languages.ContainsKey(LanguageCode.EN), () =>
             {
-                RuleFor(x => x.En.Title)
+                RuleFor(x => x.Languages.Get(LanguageCode.EN, TranslatableField.Title))
                     .NotEmpty().WithMessage("Başlıq (EN) daxil edin")
-                    .MaximumLength(200);
+                    .MaximumLength(200)
+                    .WithName("Title_EN");
 
-                RuleFor(x => x.En.Subtitle)
-                    .MaximumLength(2000);
+                RuleFor(x => x.Languages.Get(LanguageCode.EN, TranslatableField.Subtitle))
+                    .MaximumLength(2000)
+                    .WithName("Subtitle_EN");
 
-                RuleFor(x => x.En.Description)
-                    .MaximumLength(2000);
+                RuleFor(x => x.Languages.Get(LanguageCode.EN, TranslatableField.Description))
+                    .MaximumLength(2000)
+                    .WithName("Description_EN");
             });
 
-            When(x => x.Az != null, () =>
+            When(x => x.Languages != null && x.Languages.ContainsKey(LanguageCode.AZ), () =>
             {
-                RuleFor(x => x.Az.Title)
+                RuleFor(x => x.Languages.Get(LanguageCode.AZ, TranslatableField.Title))
                     .NotEmpty().WithMessage("Başlıq (AZ) daxil edin, ya da AZ tabını tam boş buraxın")
-                    .MaximumLength(250);
+                    .MaximumLength(250)
+                    .WithName("Title_AZ");
             });
 
-            When(x => x.Ru != null, () =>
+            When(x => x.Languages != null && x.Languages.ContainsKey(LanguageCode.RU), () =>
             {
-                RuleFor(x => x.Ru.Title)
+                RuleFor(x => x.Languages.Get(LanguageCode.RU, TranslatableField.Title))
                     .NotEmpty().WithMessage("Başlıq (RU) daxil edin, ya da RU tabını tam boş buraxın")
-                    .MaximumLength(250);
+                    .MaximumLength(250)
+                    .WithName("Title_RU");
             });
         }
     }

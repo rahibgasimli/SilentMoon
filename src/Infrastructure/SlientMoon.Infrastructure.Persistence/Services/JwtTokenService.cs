@@ -5,11 +5,9 @@ using SlientMoon.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SlientMoon.Infrastructure.Persistence.Services
 {
@@ -27,22 +25,34 @@ namespace SlientMoon.Infrastructure.Persistence.Services
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-
                 new Claim(JwtRegisteredClaimNames.Name, user.Name),
-
-                new Claim("emailVerified", user.EmailVerified.ToString()),
-                new Claim("role", user.Role.ToString())
+                new Claim("emailVerified", user.EmailVerified.ToString())
             };
 
+            return BuildToken(claims);
+        }
+
+        public string GenerateAdminAccessToken(Admin admin)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, admin.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, admin.Email),
+                new Claim(JwtRegisteredClaimNames.Name, admin.Name),
+            };
+
+            return BuildToken(claims);
+        }
+
+        private string BuildToken(List<Claim> claims)
+        {
             var key = _configuration["APIAppSettings:JWTSettings:Key"];
             var issuer = _configuration["APIAppSettings:JWTSettings:Issuer"];
             var audience = _configuration["APIAppSettings:JWTSettings:Audience"];
             var durationInMinutes = int.Parse(_configuration["APIAppSettings:JWTSettings:DurationInMinutes"]);
-
 
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
             var signingCredentials = new SigningCredentials(
@@ -69,13 +79,6 @@ namespace SlientMoon.Infrastructure.Persistence.Services
             return Convert.ToBase64String(randomBytes);
         }
 
-        public string GetUserIdFromToken(string token)
-        {
-            var handler = new JwtSecurityTokenHandler();    
-            var jwtToken = handler.ReadJwtToken(token);
-            return jwtToken.Subject;
-        }
-
         public ClaimsPrincipal ValidateToken(string token)
         {
             if (string.IsNullOrWhiteSpace(token))
@@ -100,7 +103,6 @@ namespace SlientMoon.Infrastructure.Persistence.Services
                 ClockSkew = TimeSpan.Zero,
 
                 NameClaimType = JwtRegisteredClaimNames.Name,
-                RoleClaimType = "role"
             };
 
 

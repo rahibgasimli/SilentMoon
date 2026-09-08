@@ -18,7 +18,6 @@ namespace SlientMoon.Application.Features.Tracks.Queries.StreamTrack
     {
         private readonly IUow _uow;
         private readonly IStorageService _storageService;
-        private readonly ICurrentUserService _currentUserService;
 
         public StreamTrackQueryHandler(
             IUow uow,
@@ -27,13 +26,10 @@ namespace SlientMoon.Application.Features.Tracks.Queries.StreamTrack
         {
             _uow = uow;
             _storageService = storageService;
-            _currentUserService = currentUserService;
         }
-
 
         public async Task<Result<TrackStreamDto>> Handle(StreamTrackQuery query, CancellationToken ct)
         {
-            //var userId = _currentUserService.GetUser();
 
             var track = await _uow.GenericRepository<Track>().GetByIdAsync(query.Id, ct);
             if (track is null || string.IsNullOrWhiteSpace(track.AudioUrl))

@@ -2,12 +2,14 @@
 using SlientMoon.Application.DTOs.Admin;
 using SlientMoon.Application.DTOs.Common;
 using SlientMoon.Application.Interfaces.Repositories;
+using SlientMoon.Domain.Enums;
 using SlientMoon.Infrastructure.Persistence.Dapper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SlientMoon.Application.Common.Extensions;
 
 namespace SlientMoon.Infrastructure.Persistence.Repositories.Admin
 {
@@ -24,6 +26,7 @@ namespace SlientMoon.Infrastructure.Persistence.Repositories.Admin
             c.""Id""          AS ""Id"",
             c.""Title""       AS ""Title"",
             c.""Subtitle""    AS ""Subtitle"",
+            c.""Description"" AS ""Description"",
             c.""ImageUrl""    AS ""ImageUrl"",
             c.""DurationSec"" AS ""DurationSec"",
             c.""IsFeatured""  AS ""IsFeatured"",
@@ -54,6 +57,8 @@ namespace SlientMoon.Infrastructure.Persistence.Repositories.Admin
 
             await _dapper.ExecuteAsync(sql, parameters);
 
+            await SyncNarratorsAsync(id, course.NarratorIds);
+
             return id;
         }
 
@@ -74,6 +79,32 @@ namespace SlientMoon.Infrastructure.Persistence.Repositories.Admin
             parameters.Add("P_ID", courseId);
 
             await _dapper.ExecuteAsync(sql, parameters);
+
+            await SyncNarratorsAsync(courseId, course.NarratorIds);
+        }
+
+        private async Task SyncNarratorsAsync(string courseId, List<string> narratorIds)
+        {
+            const string deleteSql = @"DELETE FROM ""CourseNarrators"" WHERE ""CourseId"" = :P_COURSEID";
+
+            var deleteParameters = new DynamicParameters();
+            deleteParameters.Add("P_COURSEID", courseId);
+            await _dapper.ExecuteAsync(deleteSql, deleteParameters);
+
+            if (narratorIds is null || narratorIds.Count == 0)
+                return;
+
+            const string insertSql = @"
+                INSERT INTO ""CourseNarrators"" (""CourseId"", ""NarratorId"")
+                VALUES (:P_COURSEID, :P_NARRATORID)";
+
+            foreach (var narratorId in narratorIds.Distinct())
+            {
+                var insertParameters = new DynamicParameters();
+                insertParameters.Add("P_COURSEID", courseId);
+                insertParameters.Add("P_NARRATORID", narratorId);
+                await _dapper.ExecuteAsync(insertSql, insertParameters);
+            }
         }
 
         public async Task DeleteCourseAsync(string courseId, CancellationToken ct = default)
@@ -93,7 +124,22 @@ namespace SlientMoon.Infrastructure.Persistence.Repositories.Admin
             var parameters = new DynamicParameters();
             parameters.Add("P_ID", courseId);
 
-            return await _dapper.GetAsync<AdminCourseListItemDto>(sql, parameters);
+            var course = await _dapper.GetAsync<AdminCourseListItemDto>(sql, parameters);
+            if (course is not null)
+                course.NarratorIds = await GetNarratorIdsAsync(courseId);
+
+            return course;
+        }
+
+        private async Task<List<string>> GetNarratorIdsAsync(string courseId)
+        {
+            const string sql = @"SELECT ""NarratorId"" FROM ""CourseNarrators"" WHERE ""CourseId"" = :P_COURSEID";
+
+            var parameters = new DynamicParameters();
+            parameters.Add("P_COURSEID", courseId);
+
+            var result = await _dapper.GetAllAsync<string>(sql, parameters);
+            return result.ToList();
         }
 
         public async Task<PagedResult<AdminCourseListItemDto>> GetPagedAsync(
@@ -155,10 +201,12 @@ namespace SlientMoon.Infrastructure.Persistence.Repositories.Admin
 
         private static DynamicParameters BuildParameters(AdminCourseInput course)
         {
+            course.Languages.TryGetValue(LanguageCode.EN, out var en);
+
             var parameters = new DynamicParameters();
-            parameters.Add("P_TITLE", course.En.Title);
-            parameters.Add("P_SUBTITLE", course.En.Subtitle);
-            parameters.Add("P_DESCRIPTION", course.En.Description);
+            parameters.Add("P_TITLE", course.Languages.Get(LanguageCode.EN, TranslatableField.Title));
+            parameters.Add("P_SUBTITLE", course.Languages.Get(LanguageCode.EN, TranslatableField.Subtitle));
+            parameters.Add("P_DESCRIPTION", course.Languages.Get(LanguageCode.EN, TranslatableField.Description));
             parameters.Add("P_IMAGEURL", course.ImageUrl);
             parameters.Add("P_DURATIONSEC", course.DurationSec);
             parameters.Add("P_ISFEATURED", course.IsFeatured ? 1 : 0);

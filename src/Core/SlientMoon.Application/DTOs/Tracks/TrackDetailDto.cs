@@ -10,7 +10,5 @@
         public string AudioUrl { get; set; }
         public string MimeType { get; set; }
         public long FileSizeBytes { get; set; }
-        public string ImageUrl { get; set; }
-        public int TrackNumber { get; set; }
     }
 }

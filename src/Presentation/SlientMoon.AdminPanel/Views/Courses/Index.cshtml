@@ -24,6 +24,7 @@
             <th>Baxış</th>
             <th>Seçilmiş</th>
             <th>Yaradılıb</th>
+            <th>Əməliyyat</th>
         </tr>
     </thead>
     <tbody>
@@ -45,6 +46,14 @@
                 <td>@course.ViewCount</td>
                 <td>@(course.IsFeatured ? "Bəli" : "Xeyr")</td>
                 <td>@course.CreatedAt.ToString("dd.MM.yyyy")</td>
+                <td style="width: 160px;">
+                    <a asp-action="Edit" asp-route-id="@course.Id" class="btn btn-sm btn-outline-primary">Düzəliş et</a>
+                    <form asp-action="Delete" asp-route-id="@course.Id" method="post" class="d-inline"
+                          onsubmit="return confirm('&quot;@course.Title&quot; kursunu silmək istədiyinizə əminsiniz?');">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Sil</button>
+                    </form>
+                </td>
             </tr>
         }
     </tbody>

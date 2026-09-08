@@ -41,13 +41,11 @@ namespace SlientMoon.Application.Behaviours.Validation
 
         private static TResponse CreateFailure(Error error)
         {
-            // CASE 1: TResponse = Result
             if (typeof(TResponse) == typeof(Result))
             {
                 return (TResponse)(object)Result.Failure(error);
             }
 
-            // CASE 2: TResponse = Result<T>
             if (typeof(TResponse).IsGenericType &&
                 typeof(TResponse).GetGenericTypeDefinition() == typeof(Result<>))
             {

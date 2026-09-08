@@ -37,10 +37,10 @@ namespace SlientMoon.Infrastructure.Persistence.Services
             return translations.ToDictionary(t => t.Key, t => t.Value);
         }
 
-        public async Task SaveTranslationsAsync<TEntity>(string entityId, LanguageCode languageCode, Dictionary<string, string> propertyValues, CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        public async Task SaveTranslationsAsync<TEntity>(string entityId, LanguageCode languageCode, Dictionary<TranslatableField, string> propertyValues, CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
             var keys = propertyValues.Keys
-                .Select(propName => TranslationExtensions.BuildKey<TEntity>(propName, entityId))
+                .Select(field => TranslationExtensions.BuildKey<TEntity>(field.ToString(), entityId))
                 .ToList();
 
             var dbTranslations = await _uow.GenericRepository<Translation>()
@@ -48,9 +48,9 @@ namespace SlientMoon.Infrastructure.Persistence.Services
                 .Where(t => t.LanguageCode == languageCode && keys.Contains(t.Key))
                 .ToDictionaryAsync(t => t.Key, cancellationToken);
 
-            foreach (var (propertyName, value) in propertyValues)
+            foreach (var (field, value) in propertyValues)
             {
-                var key = TranslationExtensions.BuildKey<TEntity>(propertyName, entityId);
+                var key = TranslationExtensions.BuildKey<TEntity>(field.ToString(), entityId);
 
                 if (dbTranslations.TryGetValue(key, out var existingTranslation))
                 {
@@ -67,6 +67,76 @@ namespace SlientMoon.Infrastructure.Persistence.Services
                     };
                     await _uow.GenericRepository<Translation>().AddAsync(newTranslation);
                 }
+            }
+        }
+
+        public async Task DeleteTranslationsAsync<TEntity>(
+            string entityId,
+            IEnumerable<TranslatableField> fields,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        {
+            var keys = fields
+                .Select(field => TranslationExtensions.BuildKey<TEntity>(field.ToString(), entityId))
+                .ToList();
+
+            if (keys.Count == 0)
+                return;
+
+            var translations = await _uow.GenericRepository<Translation>()
+                .GetQueryable()
+                .Where(t => keys.Contains(t.Key))
+                .ToListAsync(cancellationToken);
+
+            foreach (var translation in translations)
+                _uow.GenericRepository<Translation>().Delete(translation);
+        }
+
+        public async Task<Dictionary<LanguageCode, Dictionary<TranslatableField, string>>> GetTranslationMapAsync<TEntity>(
+            string entityId,
+            IEnumerable<TranslatableField> fields,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        {
+            var keyToField = fields.ToDictionary(
+                field => TranslationExtensions.BuildKey<TEntity>(field.ToString(), entityId),
+                field => field);
+
+            var keys = keyToField.Keys.ToList();
+
+            var rows = await _uow.GenericRepository<Translation>()
+                .GetQueryable()
+                .Where(t => keys.Contains(t.Key))
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            var map = new Dictionary<LanguageCode, Dictionary<TranslatableField, string>>();
+
+            foreach (var row in rows)
+                map.Set(row.LanguageCode, keyToField[row.Key], row.Value);
+
+            return map;
+        }
+
+        public async Task SaveAllTranslationsAsync<TEntity>(
+            string entityId,
+            Dictionary<LanguageCode, Dictionary<TranslatableField, string>> languages,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        {
+            if (languages is null)
+                return;
+
+            foreach (var (languageCode, fields) in languages)
+            {
+                if (fields is null)
+                    continue;
+
+                var propertyValues = fields
+                    .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))
+                    .ToDictionary(kv => kv.Key, kv => kv.Value);
+
+                if (propertyValues.Count == 0)
+                    continue;
+
+                await SaveTranslationsAsync<TEntity>(entityId, languageCode, propertyValues, cancellationToken);
             }
         }
     }

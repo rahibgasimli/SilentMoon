@@ -1,0 +1,112 @@
+@using SlientMoon.Application.Common.Extensions
+@using SlientMoon.Domain.Constants
+@using SlientMoon.Domain.Enums
+@model SlientMoon.AdminPanel.Models.Courses.EditCourseViewModel
+
+@{
+    ViewData["Title"] = "Kursu redaktə et";
+    var languages = Enum.GetValues<LanguageCode>();
+    var labels = new Dictionary<TranslatableField, string>
+    {
+        [TranslatableField.Title] = "Başlıq",
+        [TranslatableField.Subtitle] = "Alt başlıq",
+        [TranslatableField.Description] = "Təsvir"
+    };
+}
+
+<h1 class="h3 mb-4">Kursu redaktə et</h1>
+
+<form asp-action="Edit" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ExistingImageUrl" />
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <ul class="nav nav-tabs mb-3">
+        @foreach (var lang in languages)
+        {
+            <li class="nav-item">
+                <button class="nav-link @(lang == LanguageCode.EN ? "active" : "")"
+                        data-bs-toggle="tab" data-bs-target="#tab-@lang" type="button">@lang</button>
+            </li>
+        }
+    </ul>
+
+    <div class="tab-content mb-4">
+        @foreach (var lang in languages)
+        {
+            <div class="tab-pane fade @(lang == LanguageCode.EN ? "show active" : "")" id="tab-@lang">
+                @foreach (var field in TranslatableFields.Course)
+                {
+                    var required = lang == LanguageCode.EN && field == TranslatableField.Title;
+                    <div class="mb-3">
+                        <label class="form-label">@labels[field] (@lang) @(required ? "*" : "")</label>
+                        @if (field == TranslatableField.Description)
+                        {
+                            <textarea name="Languages[@lang][@field]" class="form-control" rows="4">@Model.Languages.Get(lang, field)</textarea>
+                        }
+                        else
+                        {
+                            <input name="Languages[@lang][@field]" value="@Model.Languages.Get(lang, field)" class="form-control" />
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label asp-for="CategoryId" class="form-label">Kateqoriya *</label>
+            <select asp-for="CategoryId" class="form-select">
+                <option value="">— Seçin —</option>
+                @foreach (var category in Model.CategoryOptions)
+                {
+                    <option value="@category.Id" selected="@(category.Id == Model.CategoryId)">@category.Name</option>
+                }
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label asp-for="DurationSec" class="form-label">Müddət (saniyə) *</label>
+            <input asp-for="DurationSec" type="number" class="form-control" />
+            <span asp-validation-for="DurationSec" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3 d-flex align-items-end">
+            <div class="form-check">
+                <input asp-for="IsFeatured" class="form-check-input" />
+                <label asp-for="IsFeatured" class="form-check-label">Seçilmiş kurs</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="NarratorIds" class="form-label">Narrator-lar</label>
+        <select name="NarratorIds" class="form-select" multiple size="5">
+            @foreach (var narrator in Model.NarratorOptions)
+            {
+                <option value="@narrator.Id" selected="@Model.NarratorIds.Contains(narrator.Id)">@narrator.Name (@narrator.Gender)</option>
+            }
+        </select>
+        <div class="form-text">Ctrl (Cmd) basılı saxlayaraq bir neçə narrator seçə bilərsiniz.</div>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="ImageFile" class="form-label">Şəkil</label>
+        @if (!string.IsNullOrEmpty(Model.ExistingImageUrl))
+        {
+            <div class="text-muted small mb-2">Hazırkı: @Model.ExistingImageUrl</div>
+        }
+        <input asp-for="ImageFile" type="file" class="form-control" accept="image/*" />
+        <div class="form-text">Boş buraxsan, mövcud şəkil saxlanılacaq.</div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Yadda saxla</button>
+    <a asp-action="Index" class="btn btn-link">Ləğv et</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

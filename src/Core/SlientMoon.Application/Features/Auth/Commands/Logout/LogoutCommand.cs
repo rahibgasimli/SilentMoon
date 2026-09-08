@@ -37,7 +37,7 @@ namespace SlientMoon.Application.Features.Auth.Commands.Logout
                 return UserErrors.InvalidCredentials;
             }
 
-            if (!user.RefreshToken.IsActive)
+            if (user.RefreshToken is null || !user.RefreshToken.IsActive)
             {
                 _logger.LogWarning("Logout failed: token already revoked. UserId: {UserId}", user.Id);
                 return UserErrors.InvalidCredentials;

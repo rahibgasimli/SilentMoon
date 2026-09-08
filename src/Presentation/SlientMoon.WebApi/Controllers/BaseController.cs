@@ -13,6 +13,7 @@ namespace SlientMoon.WebApi.Controllers
         private IProblemResultFactory _problemFactory;
         protected IProblemResultFactory ProblemFactory =>
             _problemFactory ??= HttpContext.RequestServices.GetRequiredService<IProblemResultFactory>();
+
         private IDispatcher _dispatcher;
         protected IDispatcher Dispatcher =>
             _dispatcher ??= HttpContext.RequestServices.GetRequiredService<IDispatcher>();
@@ -24,25 +25,20 @@ namespace SlientMoon.WebApi.Controllers
 
             if (result.Value is TrackStreamDto streamDto)
             {
-                // 1. MinIO-dan gələn Status Code-u təyin edirik (Məsələn: 206 və ya 200)
                 Response.StatusCode = streamDto.StatusCode;
 
-                // 2. Accept-Ranges header-ini əlavə edirik
                 Response.Headers["Accept-Ranges"] = "bytes";
 
-                // 3. Əgər MinIO Content-Range qaytarıbsa, cavaba yazırıq
                 if (!string.IsNullOrEmpty(streamDto.ContentRange))
                 {
                     Response.Headers["Content-Range"] = streamDto.ContentRange;
                 }
 
-                // 4. Content-Length-i təyin edirik
                 if (streamDto.ContentLength.HasValue)
                 {
                     Response.ContentLength = streamDto.ContentLength.Value;
                 }
 
-                // 5. Şəbəkə axınını (Stream) müştəriyə ötürürük
                 return Results.Stream(
                     stream: streamDto.Stream,
                     contentType: streamDto.ContentType

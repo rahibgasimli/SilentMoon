@@ -1,11 +1,15 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using SlientMoon.AdminPanel.Models.Courses;
 using SlientMoon.Application.DTOs.Admin;
 using SlientMoon.Application.DTOs.Common;
 using SlientMoon.Application.Features.Admin.Courses.Commands.CreateCourse;
+using SlientMoon.Application.Features.Admin.Courses.Commands.DeleteCourse;
+using SlientMoon.Application.Features.Admin.Courses.Commands.UpdateCourse;
 using SlientMoon.Application.Features.Admin.Courses.Queries.GetAdminCourses;
 using SlientMoon.Application.Features.Admin.Courses.Queries.GetCategoryOptions;
+using SlientMoon.Application.Features.Admin.Courses.Queries.GetCourseById;
+using SlientMoon.Application.Features.Admin.Tracks.Queries.GetNarratorOptions;
 using SlientMoon.Application.Features.Storage.Commands.UploadFile;
 using SlientMoon.Domain.Enums;
 
@@ -21,11 +25,24 @@ namespace SlientMoon.AdminPanel.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> Index(int page = 1, string? search = null, CancellationToken ct = default)
+        {
+            var result = await Dispatcher.Send(new GetAdminCoursesQuery { Page = page, Limit = 20, Search = search }, ct);
+
+            if (!result.IsSuccess)
+                return View(new PagedResult<AdminCourseListItemDto>());
+
+            ViewBag.Search = search;
+            return View(result.Value);
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Create(CancellationToken ct)
         {
             var model = new CreateCourseViewModel
             {
-                CategoryOptions = await GetCategoryOptionsAsync(ct)
+                CategoryOptions = await GetCategoryOptionsAsync(ct),
+                NarratorOptions = await GetNarratorOptionsAsync(ct)
             };
 
             return View(model);
@@ -42,6 +59,7 @@ namespace SlientMoon.AdminPanel.Controllers
                     ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
 
                 model.CategoryOptions = await GetCategoryOptionsAsync(ct);
+                model.NarratorOptions = await GetNarratorOptionsAsync(ct);
                 return View(model);
             }
 
@@ -54,6 +72,7 @@ namespace SlientMoon.AdminPanel.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Şəkil yüklənərkən xəta baş verdi.");
                 model.CategoryOptions = await GetCategoryOptionsAsync(ct);
+                model.NarratorOptions = await GetNarratorOptionsAsync(ct);
                 return View(model);
             }
 
@@ -63,31 +82,16 @@ namespace SlientMoon.AdminPanel.Controllers
                 DurationSec = model.DurationSec,
                 IsFeatured = model.IsFeatured,
                 CategoryId = model.CategoryId,
-                En = new AdminCourseTranslationInput
-                {
-                    Title = model.TitleEn,
-                    Subtitle = model.SubtitleEn,
-                    Description = model.DescriptionEn
-                },
-                Az = string.IsNullOrWhiteSpace(model.TitleAz) ? null : new AdminCourseTranslationInput
-                {
-                    Title = model.TitleAz,
-                    Subtitle = model.SubtitleAz,
-                    Description = model.DescriptionAz
-                },
-                Ru = string.IsNullOrWhiteSpace(model.TitleRu) ? null : new AdminCourseTranslationInput
-                {
-                    Title = model.TitleRu,
-                    Subtitle = model.SubtitleRu,
-                    Description = model.DescriptionRu
-                }
+                NarratorIds = model.NarratorIds,
+                Languages = model.Languages
             };
 
             var createResult = await Dispatcher.Send(command, ct);
             if (!createResult.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, "Kurs yaradılarkən xəta baş verdi.");
+                AddResultErrorsToModelState(createResult.Error);
                 model.CategoryOptions = await GetCategoryOptionsAsync(ct);
+                model.NarratorOptions = await GetNarratorOptionsAsync(ct);
                 return View(model);
             }
 
@@ -95,21 +99,98 @@ namespace SlientMoon.AdminPanel.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(int page = 1, string? search = null, CancellationToken ct = default)
+        public async Task<IActionResult> Edit(string id, CancellationToken ct)
         {
-            var result = await Dispatcher.Send(new GetAdminCoursesQuery { Page = page, Limit = 20, Search = search }, ct);
-
+            var result = await Dispatcher.Send(new GetCourseByIdQuery { Id = id }, ct);
             if (!result.IsSuccess)
-                return View(new PagedResult<AdminCourseListItemDto>());
+                return NotFound();
 
-            ViewBag.Search = search;
-            return View(result.Value);
+            var course = result.Value;
+
+            var model = new EditCourseViewModel
+            {
+                Id = id,
+                ExistingImageUrl = course.ImageUrl,
+                DurationSec = course.DurationSec,
+                IsFeatured = course.IsFeatured,
+                CategoryId = course.CategoryId,
+                NarratorIds = course.NarratorIds,
+                Languages = course.Languages,
+                CategoryOptions = await GetCategoryOptionsAsync(ct),
+                NarratorOptions = await GetNarratorOptionsAsync(ct)
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(EditCourseViewModel model, CancellationToken ct)
+        {
+            var imageUrl = model.ExistingImageUrl;
+
+            if (model.ImageFile is not null)
+            {
+                await using var stream = model.ImageFile.OpenReadStream();
+                var uploadResult = await Dispatcher.Send(
+                    new UploadFileCommand(stream, model.ImageFile.FileName, model.ImageFile.ContentType, StorageType.Image),
+                    ct);
+
+                if (!uploadResult.IsSuccess)
+                {
+                    ModelState.AddModelError(string.Empty, "Şəkil yüklənərkən xəta baş verdi.");
+                    model.CategoryOptions = await GetCategoryOptionsAsync(ct);
+                    model.NarratorOptions = await GetNarratorOptionsAsync(ct);
+                    return View(model);
+                }
+
+                imageUrl = uploadResult.Value.FileName;
+            }
+
+            var command = new UpdateCourseCommand
+            {
+                Id = model.Id,
+                ImageUrl = imageUrl,
+                DurationSec = model.DurationSec,
+                IsFeatured = model.IsFeatured,
+                CategoryId = model.CategoryId,
+                NarratorIds = model.NarratorIds,
+                Languages = model.Languages
+            };
+
+            var updateResult = await Dispatcher.Send(command, ct);
+            if (!updateResult.IsSuccess)
+            {
+                AddResultErrorsToModelState(updateResult.Error);
+                model.CategoryOptions = await GetCategoryOptionsAsync(ct);
+                model.NarratorOptions = await GetNarratorOptionsAsync(ct);
+                return View(model);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(string id, CancellationToken ct)
+        {
+            var deleteResult = await Dispatcher.Send(new DeleteCourseCommand { Id = id }, ct);
+            if (!deleteResult.IsSuccess)
+                TempData["Error"] = "Kurs silinərkən xəta baş verdi.";
+
+            return RedirectToAction(nameof(Index));
         }
 
         private async Task<List<CategoryOptionDto>> GetCategoryOptionsAsync(CancellationToken ct)
         {
             var result = await Dispatcher.Send(new GetCategoryOptionsQuery(), ct);
             return result.IsSuccess ? result.Value : new List<CategoryOptionDto>();
+        }
+
+        private async Task<List<NarratorOptionDto>> GetNarratorOptionsAsync(CancellationToken ct)
+        {
+            var result = await Dispatcher.Send(new GetNarratorOptionsQuery(), ct);
+            return result.IsSuccess ? result.Value : new List<NarratorOptionDto>();
         }
     }
 }

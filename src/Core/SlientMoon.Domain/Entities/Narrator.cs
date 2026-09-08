@@ -1,6 +1,5 @@
 ﻿using SlientMoon.Domain.Common;
 using SlientMoon.Domain.Enums;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace SlientMoon.Domain.Entities

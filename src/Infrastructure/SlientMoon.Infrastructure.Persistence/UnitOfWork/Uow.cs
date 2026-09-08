@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using SlientMoon.Application.Interfaces.Repositories;
+using SlientMoon.Domain.Entities;
 using SlientMoon.Infrastructure.Persistence.Contexts;
 using SlientMoon.Infrastructure.Persistence.Repositories;
 using System;
@@ -16,30 +17,42 @@ public class Uow : IUow
     public IPomodoroRepository PomodoroRepository { get; }
     public ITopicRepository TopicRepository { get; }
     public IUserRepository UserRepository { get; }
+    public IAdminRepository AdminRepository { get; }
     public ICategoryRepository CategoryRepository { get; }
+    public ICategoryTypeRepository CategoryTypeRepository { get; }
     public IReminderRepository ReminderRepository { get; }
     public ICourseRepository CourseRepository { get; }
-    public IFavoriteRepository FavoriteRepository { get; }
+    public ITrackRepository TrackRepository { get; }
+    public INarratorRepository NarratorRepository { get; }
+    public IGenericRepository<Favorite> FavoriteRepository { get; }
     public IDailyThoughtRepository DailyThoughtRepository { get; }
 
     public Uow(
         AppDbContext context,
         IPomodoroRepository pomodoroRepository,
         IUserRepository userRepository,
+        IAdminRepository adminRepository,
         ITopicRepository topicRepository,
         ICourseRepository courseRepository,
+        ITrackRepository trackRepository,
+        INarratorRepository narratorRepository,
         IDailyThoughtRepository dailyThoughtRepository,
         ICategoryRepository categoryRepository,
+        ICategoryTypeRepository categoryTypeRepository,
         IReminderRepository reminderRepository,
-        IFavoriteRepository favoriteRepository)
+        IGenericRepository<Favorite> favoriteRepository)
     {
         _context = context;
         TopicRepository = topicRepository;
         CourseRepository = courseRepository;
+        TrackRepository = trackRepository;
+        NarratorRepository = narratorRepository;
         DailyThoughtRepository = dailyThoughtRepository;
         PomodoroRepository = pomodoroRepository;
         UserRepository = userRepository;
+        AdminRepository = adminRepository;
         CategoryRepository = categoryRepository;
+        CategoryTypeRepository = categoryTypeRepository;
         ReminderRepository = reminderRepository;
         FavoriteRepository = favoriteRepository;
     }

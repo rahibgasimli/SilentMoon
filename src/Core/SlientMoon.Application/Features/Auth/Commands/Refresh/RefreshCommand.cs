@@ -42,7 +42,7 @@ namespace SlientMoon.Application.Features.Auth.Commands.Refresh
                 return UserErrors.InvalidCredentials;
             }
 
-            if (!user.RefreshToken.IsActive)
+            if (user.RefreshToken is null || !user.RefreshToken.IsActive)
             {
                 _logger.LogWarning("Refresh failed: refresh token is not active. UserId: {UserId}", user.Id);
                 return UserErrors.InvalidCredentials;
