@@ -64,6 +64,7 @@ namespace SlientMoon.Infrastructure.Persistence
             services.AddScoped<ICourseRepository, CourseRepository>();
             services.AddScoped<ITrackRepository, TrackRepository>();
             services.AddScoped<ICategoryTypeRepository, CategoryTypeRepository>();
+            services.AddScoped<INarratorRepository, NarratorRepository>();
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAdminCourseRepository, AdminCourseRepository>();
             services.AddScoped<IStorageService, MinioStorageService>();

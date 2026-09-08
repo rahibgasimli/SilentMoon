@@ -1,11 +1,11 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.DTOs.Categories;
 using SlientMoon.Application.Interfaces.Services;
+using SlientMoon.Domain.Constants;
 using SlientMoon.Domain.Entities;
 using SlientMoon.Domain.Enums;
 using SlientMoon.Domain.Errors;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,21 +33,10 @@ namespace SlientMoon.Application.Features.Categories.Queries.GetCategoryById
             if (category is null)
                 return CategoryErrors.CategoryNotFound;
 
-            var key = TranslationExtensions.BuildKey<Category>(TranslatableField.Name.ToString(), query.Id);
-            var keys = new List<string> { key };
+            var languages = await _translationService.GetTranslationMapAsync<Category>(
+                query.Id, TranslatableFields.Category, ct);
 
-            var azTranslations = await _translationService.GetTranslationsAsync(keys, LanguageCode.AZ, ct);
-            var ruTranslations = await _translationService.GetTranslationsAsync(keys, LanguageCode.RU, ct);
-
-            azTranslations.TryGetValue(key, out var azName);
-            ruTranslations.TryGetValue(key, out var ruName);
-
-            var languages = new Dictionary<LanguageCode, CategoryTranslationInput>
-            {
-                [LanguageCode.EN] = new CategoryTranslationInput { Name = category.Name },
-                [LanguageCode.AZ] = new CategoryTranslationInput { Name = azName },
-                [LanguageCode.RU] = new CategoryTranslationInput { Name = ruName }
-            };
+            languages.Set(LanguageCode.EN, TranslatableField.Name, category.Name);
 
             return new CategoryInput
             {

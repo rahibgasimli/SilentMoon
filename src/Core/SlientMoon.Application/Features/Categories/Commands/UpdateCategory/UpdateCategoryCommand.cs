@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions.Messaging;
+using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.DTOs.Categories;
 using SlientMoon.Application.Interfaces.Logging;
 using SlientMoon.Application.Interfaces.Services;
@@ -19,7 +20,7 @@ namespace SlientMoon.Application.Features.Categories.Commands.UpdateCategory
         public string CategoryTypeId { get; set; }
         public bool IconReplaced { get; set; }
 
-        public Dictionary<LanguageCode, CategoryTranslationInput> Languages { get; set; }
+        public Dictionary<LanguageCode, Dictionary<TranslatableField, string>> Languages { get; set; } = new();
     }
 
     public class UpdateCategoryCommandHandler : ICommandHandler<UpdateCategoryCommand, bool>
@@ -58,16 +59,14 @@ namespace SlientMoon.Application.Features.Categories.Commands.UpdateCategory
                 existing.IconUrl = command.IconUrl;
             }
 
-            if (command.Languages.TryGetValue(LanguageCode.EN, out var en) && !string.IsNullOrWhiteSpace(en.Name))
-                existing.Name = en.Name;
+
+            var nameEn = command.Languages.Get(LanguageCode.EN, TranslatableField.Name);
+            if (!string.IsNullOrWhiteSpace(nameEn))
+                existing.Name = nameEn;
 
             _uow.CategoryRepository.Update(existing);
 
-            await _translationService.SaveAllTranslationsAsync<Category, CategoryTranslationInput>(
-                command.Id,
-                command.Languages,
-                t => new Dictionary<TranslatableField, string> { { TranslatableField.Name, t.Name } },
-                ct);
+            await _translationService.SaveAllTranslationsAsync<Category>(command.Id, command.Languages, ct);
 
             if (command.IconReplaced && !string.IsNullOrWhiteSpace(oldIconUrl) && oldIconUrl != command.IconUrl)
             {

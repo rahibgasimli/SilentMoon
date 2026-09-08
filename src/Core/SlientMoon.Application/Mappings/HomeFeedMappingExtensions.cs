@@ -35,6 +35,51 @@ namespace SlientMoon.Application.Mappings
             };
         }
 
+        /// <summary>
+        /// DB-dən projeksiya ilə gələn sətri DTO-ya çevirir.
+        /// Tərcümə açarları Course entity-si əsasında qurulur.
+        /// </summary>
+        public static CourseDto ToHomeCourseDto(
+            this HomeCourseRow row,
+            Dictionary<string, string>? translations = null)
+        {
+            return new CourseDto
+            {
+                Id = row.Id,
+                Title = ResolveTranslation(nameof(Course.Title), row.Id, row.Title, translations),
+                Subtitle = ResolveTranslation(nameof(Course.Subtitle), row.Id, row.Subtitle, translations),
+                Description = ResolveTranslation(nameof(Course.Description), row.Id, row.Description, translations),
+                Type = row.Type ?? string.Empty,
+                ImageUrl = row.ImageUrl,
+                DurationSec = row.DurationSec,
+                IsFeatured = row.IsFeatured,
+                CreatedAt = row.CreatedAt,
+                CategoryId = row.CategoryId,
+                TrackCount = row.TrackCount,
+                Narrators = row.NarratorGenders
+                    .Select(g => g.ToString().ToLower())
+                    .Distinct()
+                    .ToList()
+            };
+        }
+
+        private static string ResolveTranslation(
+            string propertyName,
+            string entityId,
+            string? fallback,
+            Dictionary<string, string>? translations)
+        {
+            if (translations is not null)
+            {
+                var key = TranslationExtensions.BuildKey<Course>(propertyName, entityId);
+
+                if (translations.TryGetValue(key, out var translated))
+                    return translated;
+            }
+
+            return fallback ?? string.Empty;
+        }
+
         public static DailyThoughtDto ToDailyThoughtDto(this DailyThought dailyThought)
         {
             return new DailyThoughtDto

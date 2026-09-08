@@ -23,6 +23,7 @@ public class Uow : IUow
     public IReminderRepository ReminderRepository { get; }
     public ICourseRepository CourseRepository { get; }
     public ITrackRepository TrackRepository { get; }
+    public INarratorRepository NarratorRepository { get; }
     public IGenericRepository<Favorite> FavoriteRepository { get; }
     public IDailyThoughtRepository DailyThoughtRepository { get; }
 
@@ -34,6 +35,7 @@ public class Uow : IUow
         ITopicRepository topicRepository,
         ICourseRepository courseRepository,
         ITrackRepository trackRepository,
+        INarratorRepository narratorRepository,
         IDailyThoughtRepository dailyThoughtRepository,
         ICategoryRepository categoryRepository,
         ICategoryTypeRepository categoryTypeRepository,
@@ -44,6 +46,7 @@ public class Uow : IUow
         TopicRepository = topicRepository;
         CourseRepository = courseRepository;
         TrackRepository = trackRepository;
+        NarratorRepository = narratorRepository;
         DailyThoughtRepository = dailyThoughtRepository;
         PomodoroRepository = pomodoroRepository;
         UserRepository = userRepository;

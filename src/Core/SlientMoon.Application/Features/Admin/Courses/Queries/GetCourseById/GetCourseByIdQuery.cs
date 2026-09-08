@@ -3,6 +3,7 @@ using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.DTOs.Admin;
 using SlientMoon.Application.Interfaces.Repositories;
 using SlientMoon.Application.Interfaces.Services;
+using SlientMoon.Domain.Constants;
 using SlientMoon.Domain.Entities;
 using SlientMoon.Domain.Enums;
 using SlientMoon.Domain.Errors;
@@ -19,8 +20,6 @@ namespace SlientMoon.Application.Features.Admin.Courses.Queries.GetCourseById
 
     public class GetCourseByIdQueryHandler : IQueryHandler<GetCourseByIdQuery, AdminCourseInput>
     {
-
-
         private readonly IAdminCourseRepository _adminCourseRepository;
         private readonly ITranslationService _translationService;
 
@@ -38,40 +37,12 @@ namespace SlientMoon.Application.Features.Admin.Courses.Queries.GetCourseById
             if (course is null)
                 return CourseErrors.NotFound;
 
-            var fields = new[] { TranslatableField.Title, TranslatableField.Subtitle, TranslatableField.Description };
-            var keys = new List<string>();
-            foreach (var field in fields)
-                keys.Add(TranslationExtensions.BuildKey<Course>(field.ToString(), query.Id));
+            var languages = await _translationService.GetTranslationMapAsync<Course>(
+                query.Id, TranslatableFields.Course, ct);
 
-            var azTranslations = await _translationService.GetTranslationsAsync(keys, LanguageCode.AZ, ct);
-            var ruTranslations = await _translationService.GetTranslationsAsync(keys, LanguageCode.RU, ct);
-
-            string Get(Dictionary<string, string> dict, TranslatableField field) =>
-                    dict.TryGetValue(TranslationExtensions.BuildKey<Course>(field.ToString(), query.Id), out var value)
-                    ? value
-                    : null;
-
-            var languages = new Dictionary<LanguageCode, AdminCourseTranslationInput>
-            {
-                [LanguageCode.EN] = new AdminCourseTranslationInput
-                {
-                    Title = course.Title,
-                    Subtitle = course.Subtitle,
-                    Description = course.Description
-                },
-                [LanguageCode.AZ] = new AdminCourseTranslationInput
-                {
-                    Title = Get(azTranslations, TranslatableField.Title),
-                    Subtitle = Get(azTranslations, TranslatableField.Subtitle),
-                    Description = Get(azTranslations, TranslatableField.Description)
-                },
-                [LanguageCode.RU] = new AdminCourseTranslationInput
-                {
-                    Title = Get(ruTranslations, TranslatableField.Title),
-                    Subtitle = Get(ruTranslations, TranslatableField.Subtitle),
-                    Description = Get(ruTranslations, TranslatableField.Description)
-                }
-            };
+            languages.Set(LanguageCode.EN, TranslatableField.Title, course.Title);
+            languages.Set(LanguageCode.EN, TranslatableField.Subtitle, course.Subtitle);
+            languages.Set(LanguageCode.EN, TranslatableField.Description, course.Description);
 
             return new AdminCourseInput
             {
@@ -79,6 +50,7 @@ namespace SlientMoon.Application.Features.Admin.Courses.Queries.GetCourseById
                 DurationSec = course.DurationSec,
                 IsFeatured = course.IsFeatured,
                 CategoryId = course.CategoryId,
+                NarratorIds = course.NarratorIds,
                 Languages = languages
             };
         }

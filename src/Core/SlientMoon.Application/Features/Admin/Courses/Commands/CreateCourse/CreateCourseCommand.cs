@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions.Messaging;
+using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.DTOs.Admin;
 using SlientMoon.Application.Interfaces.Logging;
 using SlientMoon.Application.Interfaces.Repositories;
@@ -17,8 +18,9 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.CreateCourse
         public int DurationSec { get; set; }
         public bool IsFeatured { get; set; }
         public string CategoryId { get; set; }
+        public List<string> NarratorIds { get; set; } = new();
 
-        public Dictionary<LanguageCode, AdminCourseTranslationInput> Languages { get; set; }
+        public Dictionary<LanguageCode, Dictionary<TranslatableField, string>> Languages { get; set; } = new();
 
     }
 
@@ -40,7 +42,7 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.CreateCourse
 
         public async Task<Result<string>> Handle(CreateCourseCommand command, CancellationToken ct)
         {
-            _logger.LogInformation("CreateCourse started. Title(EN): {Title}", command.Languages[LanguageCode.EN].Title);
+            _logger.LogInformation("CreateCourse started. Title(EN): {Title}", command.Languages.Get(LanguageCode.EN, TranslatableField.Title));
 
             var input = new AdminCourseInput
             {
@@ -48,23 +50,13 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.CreateCourse
                 DurationSec = command.DurationSec,
                 IsFeatured = command.IsFeatured,
                 CategoryId = command.CategoryId,
+                NarratorIds = command.NarratorIds,
                 Languages = command.Languages,
             };
 
             var courseId = await _adminCourseRepository.InsertCourseAsync(input, ct);
 
-
-            await _translationService.SaveAllTranslationsAsync<Course, AdminCourseTranslationInput>(
-                courseId,
-                command.Languages,
-                c => new Dictionary<TranslatableField, string>
-                {
-                    { TranslatableField.Title, c.Title },
-                    { TranslatableField.Subtitle, c.Subtitle },
-                    { TranslatableField.Description, c.Description }
-                },
-                ct);
-
+            await _translationService.SaveAllTranslationsAsync<Course>(courseId, command.Languages, ct);
 
             _logger.LogInformation("CreateCourse completed. CourseId: {CourseId}", courseId);
 

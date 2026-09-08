@@ -1,6 +1,7 @@
 ﻿using Application.Abstractions.Messaging;
 using SlientMoon.Application.Interfaces.Repositories;
 using SlientMoon.Application.Interfaces.Services;
+using SlientMoon.Domain.Constants;
 using SlientMoon.Domain.Entities;
 using SlientMoon.Domain.Enums;
 using SlientMoon.Domain.Errors;
@@ -16,13 +17,6 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.DeleteCourse
 
     public class DeleteCourseCommandHandler : ICommandHandler<DeleteCourseCommand, bool>
     {
-        private static readonly TranslatableField[] Fields =
-{
-            TranslatableField.Title,
-            TranslatableField.Subtitle,
-            TranslatableField.Description
-        };
-
         private readonly IAdminCourseRepository _adminCourseRepository;
         private readonly ITranslationService _translationService;
 
@@ -40,7 +34,7 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.DeleteCourse
             if (existing is null)
                 return CourseErrors.NotFound;
 
-            await _translationService.DeleteTranslationsAsync<Course>(command.Id, Fields, ct);
+            await _translationService.DeleteTranslationsAsync<Course>(command.Id, TranslatableFields.Course, ct);
             await _adminCourseRepository.DeleteCourseAsync(command.Id, ct);
 
             return true;

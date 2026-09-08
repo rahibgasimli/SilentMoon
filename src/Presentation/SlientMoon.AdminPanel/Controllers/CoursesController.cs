@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using SlientMoon.AdminPanel.Models.Courses;
 using SlientMoon.Application.DTOs.Admin;
@@ -9,23 +9,31 @@ using SlientMoon.Application.Features.Admin.Courses.Commands.UpdateCourse;
 using SlientMoon.Application.Features.Admin.Courses.Queries.GetAdminCourses;
 using SlientMoon.Application.Features.Admin.Courses.Queries.GetCategoryOptions;
 using SlientMoon.Application.Features.Admin.Courses.Queries.GetCourseById;
+using SlientMoon.Application.Features.Admin.Tracks.Queries.GetNarratorOptions;
 using SlientMoon.Application.Features.Storage.Commands.UploadFile;
 using SlientMoon.Domain.Enums;
-using System.Collections.Generic;
 
 namespace SlientMoon.AdminPanel.Controllers
 {
     public class CoursesController : BaseAdminController
     {
         private readonly IValidator<CreateCourseViewModel> _createValidator;
-        private readonly IValidator<EditCourseViewModel> _editValidator;
 
-        public CoursesController(
-            IValidator<CreateCourseViewModel> createValidator,
-            IValidator<EditCourseViewModel> editValidator)
+        public CoursesController(IValidator<CreateCourseViewModel> createValidator)
         {
             _createValidator = createValidator;
-            _editValidator = editValidator;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Index(int page = 1, string? search = null, CancellationToken ct = default)
+        {
+            var result = await Dispatcher.Send(new GetAdminCoursesQuery { Page = page, Limit = 20, Search = search }, ct);
+
+            if (!result.IsSuccess)
+                return View(new PagedResult<AdminCourseListItemDto>());
+
+            ViewBag.Search = search;
+            return View(result.Value);
         }
 
         [HttpGet]
@@ -33,7 +41,8 @@ namespace SlientMoon.AdminPanel.Controllers
         {
             var model = new CreateCourseViewModel
             {
-                CategoryOptions = await GetCategoryOptionsAsync(ct)
+                CategoryOptions = await GetCategoryOptionsAsync(ct),
+                NarratorOptions = await GetNarratorOptionsAsync(ct)
             };
 
             return View(model);
@@ -50,6 +59,7 @@ namespace SlientMoon.AdminPanel.Controllers
                     ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
 
                 model.CategoryOptions = await GetCategoryOptionsAsync(ct);
+                model.NarratorOptions = await GetNarratorOptionsAsync(ct);
                 return View(model);
             }
 
@@ -62,37 +72,8 @@ namespace SlientMoon.AdminPanel.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Şəkil yüklənərkən xəta baş verdi.");
                 model.CategoryOptions = await GetCategoryOptionsAsync(ct);
+                model.NarratorOptions = await GetNarratorOptionsAsync(ct);
                 return View(model);
-            }
-
-            var languages = new Dictionary<LanguageCode, AdminCourseTranslationInput>
-            {
-                [LanguageCode.EN] = new AdminCourseTranslationInput
-                {
-                    Title = model.TitleEn,
-                    Subtitle = model.SubtitleEn,
-                    Description = model.DescriptionEn
-                }
-            };
-
-            if (!string.IsNullOrWhiteSpace(model.TitleAz))
-            {
-                languages[LanguageCode.AZ] = new AdminCourseTranslationInput
-                {
-                    Title = model.TitleAz,
-                    Subtitle = model.SubtitleAz,
-                    Description = model.DescriptionAz
-                };
-            }
-
-            if (!string.IsNullOrWhiteSpace(model.TitleRu))
-            {
-                languages[LanguageCode.RU] = new AdminCourseTranslationInput
-                {
-                    Title = model.TitleRu,
-                    Subtitle = model.SubtitleRu,
-                    Description = model.DescriptionRu
-                };
             }
 
             var command = new CreateCourseCommand
@@ -101,20 +82,21 @@ namespace SlientMoon.AdminPanel.Controllers
                 DurationSec = model.DurationSec,
                 IsFeatured = model.IsFeatured,
                 CategoryId = model.CategoryId,
-                Languages = languages
+                NarratorIds = model.NarratorIds,
+                Languages = model.Languages
             };
 
             var createResult = await Dispatcher.Send(command, ct);
             if (!createResult.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, "Kurs yaradılarkən xəta baş verdi.");
+                AddResultErrorsToModelState(createResult.Error);
                 model.CategoryOptions = await GetCategoryOptionsAsync(ct);
+                model.NarratorOptions = await GetNarratorOptionsAsync(ct);
                 return View(model);
             }
 
             return RedirectToAction(nameof(Index));
         }
-
 
         [HttpGet]
         public async Task<IActionResult> Edit(string id, CancellationToken ct)
@@ -124,9 +106,6 @@ namespace SlientMoon.AdminPanel.Controllers
                 return NotFound();
 
             var course = result.Value;
-            course.Languages.TryGetValue(LanguageCode.EN, out var en);
-            course.Languages.TryGetValue(LanguageCode.AZ, out var az);
-            course.Languages.TryGetValue(LanguageCode.RU, out var ru);
 
             var model = new EditCourseViewModel
             {
@@ -135,16 +114,10 @@ namespace SlientMoon.AdminPanel.Controllers
                 DurationSec = course.DurationSec,
                 IsFeatured = course.IsFeatured,
                 CategoryId = course.CategoryId,
-                TitleEn = en?.Title,
-                SubtitleEn = en?.Subtitle,
-                DescriptionEn = en?.Description,
-                TitleAz = az?.Title,
-                SubtitleAz = az?.Subtitle,
-                DescriptionAz = az?.Description,
-                TitleRu = ru?.Title,
-                SubtitleRu = ru?.Subtitle,
-                DescriptionRu = ru?.Description,
-                CategoryOptions = await GetCategoryOptionsAsync(ct)
+                NarratorIds = course.NarratorIds,
+                Languages = course.Languages,
+                CategoryOptions = await GetCategoryOptionsAsync(ct),
+                NarratorOptions = await GetNarratorOptionsAsync(ct)
             };
 
             return View(model);
@@ -154,17 +127,8 @@ namespace SlientMoon.AdminPanel.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditCourseViewModel model, CancellationToken ct)
         {
-            var validationResult = await _editValidator.ValidateAsync(model, ct);
-            if (!validationResult.IsValid)
-            {
-                foreach (var failure in validationResult.Errors)
-                    ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
-
-                model.CategoryOptions = await GetCategoryOptionsAsync(ct);
-                return View(model);
-            }
-
             var imageUrl = model.ExistingImageUrl;
+
             if (model.ImageFile is not null)
             {
                 await using var stream = model.ImageFile.OpenReadStream();
@@ -176,40 +140,11 @@ namespace SlientMoon.AdminPanel.Controllers
                 {
                     ModelState.AddModelError(string.Empty, "Şəkil yüklənərkən xəta baş verdi.");
                     model.CategoryOptions = await GetCategoryOptionsAsync(ct);
+                    model.NarratorOptions = await GetNarratorOptionsAsync(ct);
                     return View(model);
                 }
 
                 imageUrl = uploadResult.Value.FileName;
-            }
-
-            var languages = new Dictionary<LanguageCode, AdminCourseTranslationInput>
-            {
-                [LanguageCode.EN] = new AdminCourseTranslationInput
-                {
-                    Title = model.TitleEn,
-                    Subtitle = model.SubtitleEn,
-                    Description = model.DescriptionEn
-                }
-            };
-
-            if (!string.IsNullOrWhiteSpace(model.TitleAz))
-            {
-                languages[LanguageCode.AZ] = new AdminCourseTranslationInput
-                {
-                    Title = model.TitleAz,
-                    Subtitle = model.SubtitleAz,
-                    Description = model.DescriptionAz
-                };
-            }
-
-            if (!string.IsNullOrWhiteSpace(model.TitleRu))
-            {
-                languages[LanguageCode.RU] = new AdminCourseTranslationInput
-                {
-                    Title = model.TitleRu,
-                    Subtitle = model.SubtitleRu,
-                    Description = model.DescriptionRu
-                };
             }
 
             var command = new UpdateCourseCommand
@@ -219,14 +154,16 @@ namespace SlientMoon.AdminPanel.Controllers
                 DurationSec = model.DurationSec,
                 IsFeatured = model.IsFeatured,
                 CategoryId = model.CategoryId,
-                Languages = languages
+                NarratorIds = model.NarratorIds,
+                Languages = model.Languages
             };
 
             var updateResult = await Dispatcher.Send(command, ct);
             if (!updateResult.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, "Kurs yenilənərkən xəta baş verdi.");
+                AddResultErrorsToModelState(updateResult.Error);
                 model.CategoryOptions = await GetCategoryOptionsAsync(ct);
+                model.NarratorOptions = await GetNarratorOptionsAsync(ct);
                 return View(model);
             }
 
@@ -244,22 +181,16 @@ namespace SlientMoon.AdminPanel.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index(int page = 1, string? search = null, CancellationToken ct = default)
-        {
-            var result = await Dispatcher.Send(new GetAdminCoursesQuery { Page = page, Limit = 20, Search = search }, ct);
-
-            if (!result.IsSuccess)
-                return View(new PagedResult<AdminCourseListItemDto>());
-
-            ViewBag.Search = search;
-            return View(result.Value);
-        }
-
         private async Task<List<CategoryOptionDto>> GetCategoryOptionsAsync(CancellationToken ct)
         {
             var result = await Dispatcher.Send(new GetCategoryOptionsQuery(), ct);
             return result.IsSuccess ? result.Value : new List<CategoryOptionDto>();
+        }
+
+        private async Task<List<NarratorOptionDto>> GetNarratorOptionsAsync(CancellationToken ct)
+        {
+            var result = await Dispatcher.Send(new GetNarratorOptionsQuery(), ct);
+            return result.IsSuccess ? result.Value : new List<NarratorOptionDto>();
         }
     }
 }

@@ -9,6 +9,7 @@ namespace SlientMoon.Application.DTOs.Admin
         public int DurationSec { get; set; }
         public bool IsFeatured { get; set; }
         public string CategoryId { get; set; }
-        public Dictionary<LanguageCode, AdminCourseTranslationInput> Languages { get; set; }
+        public List<string> NarratorIds { get; set; } = new();
+        public Dictionary<LanguageCode, Dictionary<TranslatableField, string>> Languages { get; set; } = new();
     }
 }

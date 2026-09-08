@@ -4,6 +4,7 @@ using SlientMoon.AdminPanel.Models;
 using SlientMoon.AdminPanel.Models.Categories;
 using SlientMoon.AdminPanel.Models.CategoryTypes;
 using SlientMoon.AdminPanel.Models.Courses;
+using SlientMoon.AdminPanel.Models.Narrators;
 using SlientMoon.AdminPanel.Models.Tracks;
 using SlientMoon.Application;
 using SlientMoon.Application.Interfaces.Services;
@@ -32,13 +33,12 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IValidator<LoginViewModel>, LoginViewModelValidator>();
 builder.Services.AddScoped<IValidator<CreateCourseViewModel>, CreateCourseViewModelValidator>();
-builder.Services.AddScoped<IValidator<EditCourseViewModel>, EditCourseViewModelValidator>();
 builder.Services.AddScoped<IValidator<CreateTrackViewModel>, CreateTrackViewModelValidator>();
-builder.Services.AddScoped<IValidator<EditTrackViewModel>, EditTrackViewModelValidator>();
 builder.Services.AddScoped<IValidator<CreateCategoryTypeViewModel>, CreateCategoryTypeViewModelValidator>();
 builder.Services.AddScoped<IValidator<EditCategoryTypeViewModel>, EditCategoryTypeViewModelValidator>();
 builder.Services.AddScoped<IValidator<CreateCategoryViewModel>, CreateCategoryViewModelValidator>();
-builder.Services.AddScoped<IValidator<EditCategoryViewModel>, EditCategoryViewModelValidator>();
+builder.Services.AddScoped<IValidator<CreateNarratorViewModel>, CreateNarratorViewModelValidator>();
+builder.Services.AddScoped<IValidator<EditNarratorViewModel>, EditNarratorViewModelValidator>();
 
 builder.Services.AddApplicationLayer();
 builder.Services.AddPersistenceRegistration(builder.Configuration);

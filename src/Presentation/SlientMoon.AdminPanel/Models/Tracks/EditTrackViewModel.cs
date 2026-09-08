@@ -1,4 +1,5 @@
-﻿using SlientMoon.Application.DTOs.Admin;
+using SlientMoon.Application.DTOs.Admin;
+using SlientMoon.Domain.Enums;
 
 namespace SlientMoon.AdminPanel.Models.Tracks
 {
@@ -10,9 +11,7 @@ namespace SlientMoon.AdminPanel.Models.Tracks
         public string CourseId { get; set; }
         public string NarratorId { get; set; }
 
-        public string TitleEn { get; set; }
-        public string TitleAz { get; set; }
-        public string TitleRu { get; set; }
+        public Dictionary<LanguageCode, Dictionary<TranslatableField, string>> Languages { get; set; } = new();
 
         public string ExistingAudioUrl { get; set; }
         public IFormFile? AudioFile { get; set; }

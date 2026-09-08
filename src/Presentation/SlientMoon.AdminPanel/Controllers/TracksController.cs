@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using SlientMoon.AdminPanel.Models.Tracks;
 using SlientMoon.Application.DTOs.Admin;
@@ -18,14 +18,10 @@ namespace SlientMoon.AdminPanel.Controllers
     public class TracksController : BaseAdminController
     {
         private readonly IValidator<CreateTrackViewModel> _createValidator;
-        private readonly IValidator<EditTrackViewModel> _editValidator;
 
-        public TracksController(
-            IValidator<CreateTrackViewModel> createValidator,
-            IValidator<EditTrackViewModel> editValidator)
+        public TracksController(IValidator<CreateTrackViewModel> createValidator)
         {
             _createValidator = createValidator;
-            _editValidator = editValidator;
         }
 
         [HttpGet]
@@ -81,17 +77,6 @@ namespace SlientMoon.AdminPanel.Controllers
                 return View(model);
             }
 
-            var languages = new Dictionary<LanguageCode, AdminTrackTranslationInput>
-            {
-                [LanguageCode.EN] = new AdminTrackTranslationInput { Title = model.TitleEn }
-            };
-
-            if (!string.IsNullOrWhiteSpace(model.TitleAz))
-                languages[LanguageCode.AZ] = new AdminTrackTranslationInput { Title = model.TitleAz };
-
-            if (!string.IsNullOrWhiteSpace(model.TitleRu))
-                languages[LanguageCode.RU] = new AdminTrackTranslationInput { Title = model.TitleRu };
-
             var command = new CreateTrackCommand
             {
                 DurationSec = model.DurationSec,
@@ -100,13 +85,13 @@ namespace SlientMoon.AdminPanel.Controllers
                 FileSizeBytes = model.AudioFile.Length,
                 CourseId = model.CourseId,
                 NarratorId = model.NarratorId,
-                Languages = languages
+                Languages = model.Languages
             };
 
             var createResult = await Dispatcher.Send(command, ct);
             if (!createResult.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, "Track yaradılarkən xəta baş verdi.");
+                AddResultErrorsToModelState(createResult.Error);
                 model.CourseOptions = await GetCourseOptionsAsync(ct);
                 model.NarratorOptions = await GetNarratorOptionsAsync(ct);
                 return View(model);
@@ -123,9 +108,6 @@ namespace SlientMoon.AdminPanel.Controllers
                 return NotFound();
 
             var track = result.Value;
-            track.Languages.TryGetValue(LanguageCode.EN, out var en);
-            track.Languages.TryGetValue(LanguageCode.AZ, out var az);
-            track.Languages.TryGetValue(LanguageCode.RU, out var ru);
 
             var model = new EditTrackViewModel
             {
@@ -134,9 +116,7 @@ namespace SlientMoon.AdminPanel.Controllers
                 ExistingAudioUrl = track.AudioUrl,
                 CourseId = track.CourseId,
                 NarratorId = track.NarratorId,
-                TitleEn = en?.Title,
-                TitleAz = az?.Title,
-                TitleRu = ru?.Title,
+                Languages = track.Languages,
                 CourseOptions = await GetCourseOptionsAsync(ct),
                 NarratorOptions = await GetNarratorOptionsAsync(ct)
             };
@@ -148,17 +128,6 @@ namespace SlientMoon.AdminPanel.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditTrackViewModel model, CancellationToken ct)
         {
-            var validationResult = await _editValidator.ValidateAsync(model, ct);
-            if (!validationResult.IsValid)
-            {
-                foreach (var failure in validationResult.Errors)
-                    ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
-
-                model.CourseOptions = await GetCourseOptionsAsync(ct);
-                model.NarratorOptions = await GetNarratorOptionsAsync(ct);
-                return View(model);
-            }
-
             var audioUrl = model.ExistingAudioUrl;
             var mimeType = string.Empty;
             var fileSizeBytes = 0L;
@@ -185,17 +154,6 @@ namespace SlientMoon.AdminPanel.Controllers
                 audioReplaced = true;
             }
 
-            var languages = new Dictionary<LanguageCode, AdminTrackTranslationInput>
-            {
-                [LanguageCode.EN] = new AdminTrackTranslationInput { Title = model.TitleEn }
-            };
-
-            if (!string.IsNullOrWhiteSpace(model.TitleAz))
-                languages[LanguageCode.AZ] = new AdminTrackTranslationInput { Title = model.TitleAz };
-
-            if (!string.IsNullOrWhiteSpace(model.TitleRu))
-                languages[LanguageCode.RU] = new AdminTrackTranslationInput { Title = model.TitleRu };
-
             var command = new UpdateTrackCommand
             {
                 Id = model.Id,
@@ -206,13 +164,13 @@ namespace SlientMoon.AdminPanel.Controllers
                 CourseId = model.CourseId,
                 NarratorId = model.NarratorId,
                 AudioReplaced = audioReplaced,
-                Languages = languages
+                Languages = model.Languages
             };
 
             var updateResult = await Dispatcher.Send(command, ct);
             if (!updateResult.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, "Track yenilənərkən xəta baş verdi.");
+                AddResultErrorsToModelState(updateResult.Error);
                 model.CourseOptions = await GetCourseOptionsAsync(ct);
                 model.NarratorOptions = await GetNarratorOptionsAsync(ct);
                 return View(model);
@@ -220,6 +178,7 @@ namespace SlientMoon.AdminPanel.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string id, CancellationToken ct)
@@ -230,8 +189,6 @@ namespace SlientMoon.AdminPanel.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-
-
 
         private async Task<List<CourseOptionDto>> GetCourseOptionsAsync(CancellationToken ct)
         {

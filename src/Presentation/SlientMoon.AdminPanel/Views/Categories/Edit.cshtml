@@ -1,7 +1,11 @@
-﻿@model SlientMoon.AdminPanel.Models.Categories.EditCategoryViewModel
+@using SlientMoon.Application.Common.Extensions
+@using SlientMoon.Domain.Constants
+@using SlientMoon.Domain.Enums
+@model SlientMoon.AdminPanel.Models.Categories.EditCategoryViewModel
 
 @{
     ViewData["Title"] = "Category-ni redaktə et";
+    var languages = Enum.GetValues<LanguageCode>();
 }
 
 <h1 class="h3 mb-4">Category-ni redaktə et</h1>
@@ -13,39 +17,28 @@
     <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
     <ul class="nav nav-tabs mb-3">
-        <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-en" type="button">EN</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-az" type="button">AZ</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ru" type="button">RU</button>
-        </li>
+        @foreach (var lang in languages)
+        {
+            <li class="nav-item">
+                <button class="nav-link @(lang == LanguageCode.EN ? "active" : "")"
+                        data-bs-toggle="tab" data-bs-target="#tab-@lang" type="button">@lang</button>
+            </li>
+        }
     </ul>
 
     <div class="tab-content mb-4">
-        <div class="tab-pane fade show active" id="tab-en">
-            <div class="mb-3">
-                <label asp-for="NameEn" class="form-label">Ad (EN) *</label>
-                <input asp-for="NameEn" class="form-control" />
-                <span asp-validation-for="NameEn" class="text-danger"></span>
+        @foreach (var lang in languages)
+        {
+            <div class="tab-pane fade @(lang == LanguageCode.EN ? "show active" : "")" id="tab-@lang">
+                @foreach (var field in TranslatableFields.Category)
+                {
+                    <div class="mb-3">
+                        <label class="form-label">Ad (@lang) @(lang == LanguageCode.EN ? "*" : "")</label>
+                        <input name="Languages[@lang][@field]" value="@Model.Languages.Get(lang, field)" class="form-control" />
+                    </div>
+                }
             </div>
-        </div>
-
-        <div class="tab-pane fade" id="tab-az">
-            <div class="mb-3">
-                <label asp-for="NameAz" class="form-label">Ad (AZ)</label>
-                <input asp-for="NameAz" class="form-control" />
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="tab-ru">
-            <div class="mb-3">
-                <label asp-for="NameRu" class="form-label">Ad (RU)</label>
-                <input asp-for="NameRu" class="form-control" />
-            </div>
-        </div>
+        }
     </div>
 
     <div class="row">

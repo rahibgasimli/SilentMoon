@@ -1,11 +1,11 @@
-﻿using Application.Abstractions.Messaging;
+using Application.Abstractions.Messaging;
 using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.DTOs.Admin;
 using SlientMoon.Application.Interfaces.Services;
+using SlientMoon.Domain.Constants;
 using SlientMoon.Domain.Entities;
 using SlientMoon.Domain.Enums;
 using SlientMoon.Domain.Errors;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,21 +33,10 @@ namespace SlientMoon.Application.Features.Admin.Tracks.Queries.GetTrackById
             if (track is null)
                 return TrackErrors.TrackNotFound;
 
-            var key = TranslationExtensions.BuildKey<Track>(TranslatableField.Title.ToString(), query.Id);
-            var keys = new List<string> { key };
+            var languages = await _translationService.GetTranslationMapAsync<Track>(
+                query.Id, TranslatableFields.Track, ct);
 
-            var azTranslations = await _translationService.GetTranslationsAsync(keys, LanguageCode.AZ, ct);
-            var ruTranslations = await _translationService.GetTranslationsAsync(keys, LanguageCode.RU, ct);
-
-            azTranslations.TryGetValue(key, out var azTitle);
-            ruTranslations.TryGetValue(key, out var ruTitle);
-
-            var languages = new Dictionary<LanguageCode, AdminTrackTranslationInput>
-            {
-                [LanguageCode.EN] = new AdminTrackTranslationInput { Title = track.Title },
-                [LanguageCode.AZ] = new AdminTrackTranslationInput { Title = azTitle },
-                [LanguageCode.RU] = new AdminTrackTranslationInput { Title = ruTitle }
-            };
+            languages.Set(LanguageCode.EN, TranslatableField.Title, track.Title);
 
             return new AdminTrackInput
             {
@@ -59,7 +48,6 @@ namespace SlientMoon.Application.Features.Admin.Tracks.Queries.GetTrackById
                 NarratorId = track.NarratorId,
                 Languages = languages
             };
-
         }
     }
 }

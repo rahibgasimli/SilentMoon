@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions.Messaging;
+using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.DTOs.Categories;
 using SlientMoon.Application.Interfaces.Logging;
 using SlientMoon.Application.Interfaces.Services;
@@ -16,7 +17,7 @@ namespace SlientMoon.Application.Features.Categories.Commands.CreateCategory
         public string IconUrl { get; set; }
         public string CategoryTypeId { get; set; }
 
-        public Dictionary<LanguageCode, CategoryTranslationInput> Languages { get; set; }
+        public Dictionary<LanguageCode, Dictionary<TranslatableField, string>> Languages { get; set; } = new();
     }
 
     public class CreateCategoryCommandHandler : ICommandHandler<CreateCategoryCommand, string>
@@ -37,11 +38,13 @@ namespace SlientMoon.Application.Features.Categories.Commands.CreateCategory
 
         public async Task<Result<string>> Handle(CreateCategoryCommand command, CancellationToken ct)
         {
-            _logger.LogInformation("CreateCategory started. Name(EN): {Name}", command.Languages[LanguageCode.EN].Name);
+            var nameEn = command.Languages.Get(LanguageCode.EN, TranslatableField.Name);
+
+            _logger.LogInformation("CreateCategory started. Name(EN): {Name}", nameEn);
 
             var category = new Category
             {
-                Name = command.Languages[LanguageCode.EN].Name,
+                Name = nameEn,
                 Slug = command.Slug,
                 IconUrl = command.IconUrl,
                 CategoryTypeId = command.CategoryTypeId
@@ -49,11 +52,7 @@ namespace SlientMoon.Application.Features.Categories.Commands.CreateCategory
 
             await _uow.CategoryRepository.AddAsync(category, ct);
 
-            await _translationService.SaveAllTranslationsAsync<Category, CategoryTranslationInput>(
-                category.Id,
-                command.Languages,
-                t => new Dictionary<TranslatableField, string> { { TranslatableField.Name, t.Name } },
-                ct);
+            await _translationService.SaveAllTranslationsAsync<Category>(category.Id, command.Languages, ct);
 
             _logger.LogInformation("CreateCategory completed. CategoryId: {CategoryId}", category.Id);
 

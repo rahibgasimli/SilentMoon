@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using SlientMoon.AdminPanel.Models.Categories;
 using SlientMoon.Application.DTOs.Categories;
@@ -17,14 +17,10 @@ namespace SlientMoon.AdminPanel.Controllers
     public class CategoriesController : BaseAdminController
     {
         private readonly IValidator<CreateCategoryViewModel> _createValidator;
-        private readonly IValidator<EditCategoryViewModel> _editValidator;
 
-        public CategoriesController(
-            IValidator<CreateCategoryViewModel> createValidator,
-            IValidator<EditCategoryViewModel> editValidator)
+        public CategoriesController(IValidator<CreateCategoryViewModel> createValidator)
         {
             _createValidator = createValidator;
-            _editValidator = editValidator;
         }
 
         [HttpGet]
@@ -77,29 +73,18 @@ namespace SlientMoon.AdminPanel.Controllers
                 return View(model);
             }
 
-            var languages = new Dictionary<LanguageCode, CategoryTranslationInput>
-            {
-                [LanguageCode.EN] = new CategoryTranslationInput { Name = model.NameEn }
-            };
-
-            if (!string.IsNullOrWhiteSpace(model.NameAz))
-                languages[LanguageCode.AZ] = new CategoryTranslationInput { Name = model.NameAz };
-
-            if (!string.IsNullOrWhiteSpace(model.NameRu))
-                languages[LanguageCode.RU] = new CategoryTranslationInput { Name = model.NameRu };
-
             var command = new CreateCategoryCommand
             {
                 Slug = model.Slug,
                 IconUrl = uploadResult.Value.FileName,
                 CategoryTypeId = model.CategoryTypeId,
-                Languages = languages
+                Languages = model.Languages
             };
 
             var createResult = await Dispatcher.Send(command, ct);
             if (!createResult.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, "Category yaradılarkən xəta baş verdi.");
+                AddResultErrorsToModelState(createResult.Error);
                 model.CategoryTypeOptions = await GetCategoryTypeOptionsAsync(ct);
                 return View(model);
             }
@@ -115,9 +100,6 @@ namespace SlientMoon.AdminPanel.Controllers
                 return NotFound();
 
             var category = result.Value;
-            category.Languages.TryGetValue(LanguageCode.EN, out var en);
-            category.Languages.TryGetValue(LanguageCode.AZ, out var az);
-            category.Languages.TryGetValue(LanguageCode.RU, out var ru);
 
             var model = new EditCategoryViewModel
             {
@@ -125,9 +107,7 @@ namespace SlientMoon.AdminPanel.Controllers
                 Slug = category.Slug,
                 ExistingIconUrl = category.IconUrl,
                 CategoryTypeId = category.CategoryTypeId,
-                NameEn = en?.Name,
-                NameAz = az?.Name,
-                NameRu = ru?.Name,
+                Languages = category.Languages,
                 CategoryTypeOptions = await GetCategoryTypeOptionsAsync(ct)
             };
 
@@ -138,16 +118,6 @@ namespace SlientMoon.AdminPanel.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(EditCategoryViewModel model, CancellationToken ct)
         {
-            var validationResult = await _editValidator.ValidateAsync(model, ct);
-            if (!validationResult.IsValid)
-            {
-                foreach (var failure in validationResult.Errors)
-                    ModelState.AddModelError(failure.PropertyName, failure.ErrorMessage);
-
-                model.CategoryTypeOptions = await GetCategoryTypeOptionsAsync(ct);
-                return View(model);
-            }
-
             var iconUrl = model.ExistingIconUrl;
             var iconReplaced = false;
 
@@ -169,17 +139,6 @@ namespace SlientMoon.AdminPanel.Controllers
                 iconReplaced = true;
             }
 
-            var languages = new Dictionary<LanguageCode, CategoryTranslationInput>
-            {
-                [LanguageCode.EN] = new CategoryTranslationInput { Name = model.NameEn }
-            };
-
-            if (!string.IsNullOrWhiteSpace(model.NameAz))
-                languages[LanguageCode.AZ] = new CategoryTranslationInput { Name = model.NameAz };
-
-            if (!string.IsNullOrWhiteSpace(model.NameRu))
-                languages[LanguageCode.RU] = new CategoryTranslationInput { Name = model.NameRu };
-
             var command = new UpdateCategoryCommand
             {
                 Id = model.Id,
@@ -187,13 +146,13 @@ namespace SlientMoon.AdminPanel.Controllers
                 IconUrl = iconUrl,
                 CategoryTypeId = model.CategoryTypeId,
                 IconReplaced = iconReplaced,
-                Languages = languages
+                Languages = model.Languages
             };
 
             var updateResult = await Dispatcher.Send(command, ct);
             if (!updateResult.IsSuccess)
             {
-                ModelState.AddModelError(string.Empty, "Category yenilənərkən xəta baş verdi.");
+                AddResultErrorsToModelState(updateResult.Error);
                 model.CategoryTypeOptions = await GetCategoryTypeOptionsAsync(ct);
                 return View(model);
             }

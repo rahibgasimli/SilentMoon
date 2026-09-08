@@ -1,4 +1,5 @@
-﻿using SlientMoon.Application.DTOs.Admin;
+using SlientMoon.Application.DTOs.Admin;
+using SlientMoon.Domain.Enums;
 
 namespace SlientMoon.AdminPanel.Models.Courses
 {
@@ -7,21 +8,13 @@ namespace SlientMoon.AdminPanel.Models.Courses
         public int DurationSec { get; set; }
         public bool IsFeatured { get; set; }
         public string CategoryId { get; set; }
+        public List<string> NarratorIds { get; set; } = new();
 
-        public string TitleEn { get; set; }
-        public string SubtitleEn { get; set; }
-        public string DescriptionEn { get; set; }
-
-        public string TitleAz { get; set; }
-        public string SubtitleAz { get; set; }
-        public string DescriptionAz { get; set; }
-
-        public string TitleRu { get; set; }
-        public string SubtitleRu { get; set; }
-        public string DescriptionRu { get; set; }
+        public Dictionary<LanguageCode, Dictionary<TranslatableField, string>> Languages { get; set; } = new();
 
         public IFormFile ImageFile { get; set; }
 
         public List<CategoryOptionDto> CategoryOptions { get; set; } = new();
+        public List<NarratorOptionDto> NarratorOptions { get; set; } = new();
     }
 }

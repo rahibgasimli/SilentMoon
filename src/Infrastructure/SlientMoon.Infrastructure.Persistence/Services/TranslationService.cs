@@ -91,21 +91,45 @@ namespace SlientMoon.Infrastructure.Persistence.Services
                 _uow.GenericRepository<Translation>().Delete(translation);
         }
 
-        public async Task SaveAllTranslationsAsync<TEntity, TTranslationInput>(
+        public async Task<Dictionary<LanguageCode, Dictionary<TranslatableField, string>>> GetTranslationMapAsync<TEntity>(
             string entityId,
-            Dictionary<LanguageCode, TTranslationInput> languages,
-            Func<TTranslationInput, Dictionary<TranslatableField, string>> fieldSelector,
+            IEnumerable<TranslatableField> fields,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity
+        {
+            var keyToField = fields.ToDictionary(
+                field => TranslationExtensions.BuildKey<TEntity>(field.ToString(), entityId),
+                field => field);
+
+            var keys = keyToField.Keys.ToList();
+
+            var rows = await _uow.GenericRepository<Translation>()
+                .GetQueryable()
+                .Where(t => keys.Contains(t.Key))
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            var map = new Dictionary<LanguageCode, Dictionary<TranslatableField, string>>();
+
+            foreach (var row in rows)
+                map.Set(row.LanguageCode, keyToField[row.Key], row.Value);
+
+            return map;
+        }
+
+        public async Task SaveAllTranslationsAsync<TEntity>(
+            string entityId,
+            Dictionary<LanguageCode, Dictionary<TranslatableField, string>> languages,
             CancellationToken cancellationToken = default) where TEntity : BaseEntity
         {
             if (languages is null)
                 return;
 
-            foreach (var (languageCode, translation) in languages)
+            foreach (var (languageCode, fields) in languages)
             {
-                if (translation is null)
+                if (fields is null)
                     continue;
 
-                var propertyValues = fieldSelector(translation)
+                var propertyValues = fields
                     .Where(kv => !string.IsNullOrWhiteSpace(kv.Value))
                     .ToDictionary(kv => kv.Key, kv => kv.Value);
 

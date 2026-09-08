@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions.Messaging;
+using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.DTOs.Admin;
 using SlientMoon.Application.Interfaces.Logging;
 using SlientMoon.Application.Interfaces.Services;
@@ -22,7 +23,7 @@ namespace SlientMoon.Application.Features.Admin.Tracks.Commands.UpdateTrack
         public string NarratorId { get; set; }
         public bool AudioReplaced { get; set; }
 
-        public Dictionary<LanguageCode, AdminTrackTranslationInput> Languages { get; set; }
+        public Dictionary<LanguageCode, Dictionary<TranslatableField, string>> Languages { get; set; } = new();
     }
 
     public class UpdateTrackCommandHandler : ICommandHandler<UpdateTrackCommand, bool>
@@ -63,23 +64,19 @@ namespace SlientMoon.Application.Features.Admin.Tracks.Commands.UpdateTrack
             existing.CourseId = command.CourseId;
             existing.NarratorId = command.NarratorId;
 
-            if (command.Languages.TryGetValue(LanguageCode.EN, out var en) && !string.IsNullOrWhiteSpace(en.Title))
-                existing.Title = en.Title;
+            var titleEn = command.Languages.Get(LanguageCode.EN, TranslatableField.Title);
+            if (!string.IsNullOrWhiteSpace(titleEn))
+                existing.Title = titleEn;
 
             _uow.TrackRepository.Update(existing);
 
-            await _translationService.SaveAllTranslationsAsync<Track, AdminTrackTranslationInput>(
-                command.Id,
-                command.Languages,
-                t => new Dictionary<TranslatableField, string> { { TranslatableField.Title, t.Title } },
-                ct);
 
+            await _translationService.SaveAllTranslationsAsync<Track>(command.Id, command.Languages, ct);
 
             if (command.AudioReplaced && !string.IsNullOrWhiteSpace(oldAudioUrl) && oldAudioUrl != command.AudioUrl)
             {
                 await _storageService.DeleteAsync(oldAudioUrl, StorageType.Audio, ct);
             }
-
 
             _logger.LogInformation("UpdateTrack completed. TrackId: {TrackId}", command.Id);
 

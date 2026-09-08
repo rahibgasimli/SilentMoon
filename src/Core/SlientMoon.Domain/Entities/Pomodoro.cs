@@ -1,6 +1,5 @@
 ﻿using SlientMoon.Domain.Common;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SlientMoon.Domain.Entities

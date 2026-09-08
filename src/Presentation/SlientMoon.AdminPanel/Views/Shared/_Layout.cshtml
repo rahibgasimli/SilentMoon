@@ -24,6 +24,8 @@
                    asp-controller="Categories" asp-action="Index">Categories</a>
                 <a class="admin-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "CategoryTypes" ? "active" : "")"
                    asp-controller="CategoryTypes" asp-action="Index">Category Types</a>
+                <a class="admin-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Narrators" ? "active" : "")"
+                   asp-controller="Narrators" asp-action="Index">Narrators</a>
             </nav>
             <div class="admin-sidebar-footer">
                 <form asp-controller="Account" asp-action="Logout" method="post">

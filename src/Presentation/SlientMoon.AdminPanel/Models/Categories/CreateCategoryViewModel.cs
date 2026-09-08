@@ -1,4 +1,5 @@
-﻿using SlientMoon.Application.DTOs.Categories;
+using SlientMoon.Application.DTOs.Categories;
+using SlientMoon.Domain.Enums;
 
 namespace SlientMoon.AdminPanel.Models.Categories
 {
@@ -7,9 +8,7 @@ namespace SlientMoon.AdminPanel.Models.Categories
         public string Slug { get; set; }
         public string CategoryTypeId { get; set; }
 
-        public string NameEn { get; set; }
-        public string NameAz { get; set; }
-        public string NameRu { get; set; }
+        public Dictionary<LanguageCode, Dictionary<TranslatableField, string>> Languages { get; set; } = new();
 
         public IFormFile IconFile { get; set; }
 

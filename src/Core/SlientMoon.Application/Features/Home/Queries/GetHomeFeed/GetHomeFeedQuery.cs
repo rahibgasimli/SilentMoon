@@ -27,6 +27,10 @@ namespace SlientMoon.Application.Features.Home.Queries.GetHomeFeed
 
     public class GetHomeFeedQueryHandler : IQueryHandler<GetHomeFeedQuery, HomeDto>
     {
+        private const int HomeFeedBlockSize = 4;
+        private const string SleepTypeSlug = "sleep";
+        private const string MeditationTypeSlug = "meditation";
+
         private readonly IUow _uow;
         private readonly IAppLogger<GetHomeFeedQueryHandler> _logger;
         private readonly IDateTimeService _dateTimeService;
@@ -89,51 +93,46 @@ namespace SlientMoon.Application.Features.Home.Queries.GetHomeFeed
                 dailyThoughtDto = dailyThoughtEntity.ToDailyThoughtDto();
             }
 
-            var allCourses = await _uow.CourseRepository.GetHomeFeedCoursesAsync(ct);
+            var recommendedRows = await _uow.CourseRepository
+                .GetRecommendedCoursesAsync(HomeFeedBlockSize, ct);
+
+            var featuredSleepRows = await _uow.CourseRepository
+                .GetFeaturedCoursesByTypeAsync(SleepTypeSlug, HomeFeedBlockSize, ct);
+
+            var popularMeditationRows = await _uow.CourseRepository
+                .GetPopularCoursesByTypeAsync(MeditationTypeSlug, HomeFeedBlockSize, ct);
 
             Dictionary<string, string>? translations = null;
-            if (currentLang != LanguageCode.EN && allCourses.Any())
+            if (currentLang != LanguageCode.EN)
             {
-                var keys = allCourses.GetTranslationKeys(
-                    nameof(Course.Title),
-                    nameof(Course.Subtitle),
-                    nameof(Course.Description)
-                );
+                var courseIds = recommendedRows
+                    .Concat(featuredSleepRows)
+                    .Concat(popularMeditationRows)
+                    .Select(r => r.Id)
+                    .Distinct()
+                    .ToList();
 
-                translations = await _translationService.GetTranslationsAsync(keys, currentLang, ct);
+                if (courseIds.Count > 0)
+                {
+                    var keys = courseIds.SelectMany(id => new[]
+                    {
+                        TranslationExtensions.BuildKey<Course>(nameof(Course.Title), id),
+                        TranslationExtensions.BuildKey<Course>(nameof(Course.Subtitle), id),
+                        TranslationExtensions.BuildKey<Course>(nameof(Course.Description), id)
+                    });
+
+                    translations = await _translationService.GetTranslationsAsync(keys, currentLang, ct);
+                }
             }
-
-            var recommended = allCourses
-                .Take(4)
-                .Select(c => c.ToHomeCourseDto(translations))
-                .ToList();
-
-            var featuredSleep = allCourses
-                .Where(c => c.Category != null &&
-                            c.Category.CategoryType != null &&
-                            c.Category.CategoryType.Slug.ToLower() == "sleep" &&
-                            c.IsFeatured)
-                .Take(4)
-                .Select(c => c.ToHomeCourseDto(translations))
-                .ToList();
-
-            var popularMeditations = allCourses
-                .Where(c => c.Category != null &&
-                            c.Category.CategoryType != null &&
-                            c.Category.CategoryType.Slug.ToLower() == "meditation")
-                .OrderByDescending(c => c.ViewCount)
-                .Take(4)
-                .Select(c => c.ToHomeCourseDto(translations))
-                .ToList();
 
             var response = new HomeDto
             {
                 Greeting = greetingDto,
                 RecommendedTitle = recommendedTitle,
-                Recommended = recommended,
+                Recommended = recommendedRows.Select(r => r.ToHomeCourseDto(translations)).ToList(),
                 DailyThought = dailyThoughtDto,
-                FeaturedSleep = featuredSleep,
-                PopularMeditations = popularMeditations
+                FeaturedSleep = featuredSleepRows.Select(r => r.ToHomeCourseDto(translations)).ToList(),
+                PopularMeditations = popularMeditationRows.Select(r => r.ToHomeCourseDto(translations)).ToList()
             };
 
             return response;

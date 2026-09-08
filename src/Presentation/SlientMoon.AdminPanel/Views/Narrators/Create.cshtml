@@ -1,0 +1,31 @@
+@model SlientMoon.AdminPanel.Models.Narrators.CreateNarratorViewModel
+
+@{
+    ViewData["Title"] = "Yeni narrator";
+}
+
+<h1 class="h3 mb-4">Yeni narrator</h1>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label asp-for="Name" class="form-label">Ad *</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="Gender" class="form-label">Cins *</label>
+        <select asp-for="Gender" class="form-select" asp-items="Html.GetEnumSelectList<SlientMoon.Domain.Enums.Gender>()"></select>
+        <span asp-validation-for="Gender" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Yarat</button>
+    <a asp-action="Index" class="btn btn-link">Ləğv et</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

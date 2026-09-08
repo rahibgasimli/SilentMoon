@@ -1,4 +1,5 @@
 ﻿using Application.Abstractions.Messaging;
+using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Application.DTOs.Admin;
 using SlientMoon.Application.Interfaces.Logging;
 using SlientMoon.Application.Interfaces.Services;
@@ -19,7 +20,7 @@ namespace SlientMoon.Application.Features.Admin.Tracks.Commands.CreateTrack
         public string CourseId { get; set; }
         public string NarratorId { get; set; }
 
-        public Dictionary<LanguageCode, AdminTrackTranslationInput> Languages { get; set; }
+        public Dictionary<LanguageCode, Dictionary<TranslatableField, string>> Languages { get; set; } = new();
     }
 
     public class CreateTrackCommandHandler : ICommandHandler<CreateTrackCommand, string>
@@ -40,11 +41,13 @@ namespace SlientMoon.Application.Features.Admin.Tracks.Commands.CreateTrack
 
         public async Task<Result<string>> Handle(CreateTrackCommand command, CancellationToken ct)
         {
-            _logger.LogInformation("CreateTrack started. Title(EN): {Title}", command.Languages[LanguageCode.EN].Title);
+            var titleEn = command.Languages.Get(LanguageCode.EN, TranslatableField.Title);
+
+            _logger.LogInformation("CreateTrack started. Title(EN): {Title}", titleEn);
 
             var track = new Track
             {
-                Title = command.Languages[LanguageCode.EN].Title,
+                Title = titleEn,
                 DurationSec = command.DurationSec,
                 AudioUrl = command.AudioUrl,
                 MimeType = command.MimeType,
@@ -55,11 +58,7 @@ namespace SlientMoon.Application.Features.Admin.Tracks.Commands.CreateTrack
 
             await _uow.TrackRepository.AddAsync(track, ct);
 
-            await _translationService.SaveAllTranslationsAsync<Track, AdminTrackTranslationInput>(
-                track.Id,
-                command.Languages,
-                t => new Dictionary<TranslatableField, string> { { TranslatableField.Title, t.Title } },
-                ct);
+            await _translationService.SaveAllTranslationsAsync<Track>(track.Id, command.Languages, ct);
 
             _logger.LogInformation("CreateTrack completed. TrackId: {TrackId}", track.Id);
 

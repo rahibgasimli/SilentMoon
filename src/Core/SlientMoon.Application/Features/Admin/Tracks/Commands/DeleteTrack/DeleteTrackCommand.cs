@@ -1,5 +1,6 @@
 ﻿using Application.Abstractions.Messaging;
 using SlientMoon.Application.Interfaces.Services;
+using SlientMoon.Domain.Constants;
 using SlientMoon.Domain.Entities;
 using SlientMoon.Domain.Enums;
 using SlientMoon.Domain.Errors;
@@ -15,8 +16,6 @@ namespace SlientMoon.Application.Features.Admin.Tracks.Commands.DeleteTrack
 
     public class DeleteTrackCommandHandler : ICommandHandler<DeleteTrackCommand, bool>
     {
-        private static readonly TranslatableField[] Fields = { TranslatableField.Title };
-
         private readonly IUow _uow;
         private readonly ITranslationService _translationService;
         private readonly IStorageService _storageService;
@@ -40,7 +39,7 @@ namespace SlientMoon.Application.Features.Admin.Tracks.Commands.DeleteTrack
             if (!string.IsNullOrWhiteSpace(existing.AudioUrl))
                 await _storageService.DeleteAsync(existing.AudioUrl, StorageType.Audio, ct);
 
-            await _translationService.DeleteTranslationsAsync<Track>(command.Id, Fields, ct);
+            await _translationService.DeleteTranslationsAsync<Track>(command.Id, TranslatableFields.Track, ct);
 
             _uow.TrackRepository.Delete(existing);
 

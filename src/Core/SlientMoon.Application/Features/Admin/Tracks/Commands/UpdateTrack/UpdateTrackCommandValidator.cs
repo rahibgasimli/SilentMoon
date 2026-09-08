@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using SlientMoon.Application.Common.Extensions;
 using SlientMoon.Domain.Enums;
 
 namespace SlientMoon.Application.Features.Admin.Tracks.Commands.UpdateTrack
@@ -19,23 +20,26 @@ namespace SlientMoon.Application.Features.Admin.Tracks.Commands.UpdateTrack
 
             When(x => x.Languages != null && x.Languages.ContainsKey(LanguageCode.EN), () =>
             {
-                RuleFor(x => x.Languages[LanguageCode.EN].Title)
+                RuleFor(x => x.Languages.Get(LanguageCode.EN, TranslatableField.Title))
                     .NotEmpty().WithMessage("Başlıq (EN) daxil edin")
-                    .MaximumLength(200);
+                    .MaximumLength(200)
+                    .WithName("Title_EN");
             });
 
             When(x => x.Languages != null && x.Languages.ContainsKey(LanguageCode.AZ), () =>
             {
-                RuleFor(x => x.Languages[LanguageCode.AZ].Title)
+                RuleFor(x => x.Languages.Get(LanguageCode.AZ, TranslatableField.Title))
                     .NotEmpty().WithMessage("Başlıq (AZ) daxil edin, ya da AZ tabını tam boş buraxın")
-                    .MaximumLength(200);
+                    .MaximumLength(200)
+                    .WithName("Title_AZ");
             });
 
             When(x => x.Languages != null && x.Languages.ContainsKey(LanguageCode.RU), () =>
             {
-                RuleFor(x => x.Languages[LanguageCode.RU].Title)
+                RuleFor(x => x.Languages.Get(LanguageCode.RU, TranslatableField.Title))
                     .NotEmpty().WithMessage("Başlıq (RU) daxil edin, ya da RU tabını tam boş buraxın")
-                    .MaximumLength(200);
+                    .MaximumLength(200)
+                    .WithName("Title_RU");
             });
         }
     }

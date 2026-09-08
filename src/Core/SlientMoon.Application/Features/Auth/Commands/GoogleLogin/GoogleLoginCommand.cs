@@ -50,8 +50,9 @@ namespace SlientMoon.Application.Features.Auth.Commands.GoogleLogin
             var googleUser = googleResult.Value;
 
             var user = await _uow.UserRepository.GetByEmailAsync(googleUser.Email);
+            var isNewUser = user == null;
 
-            if (user == null)
+            if (isNewUser)
             {
                 user = new ApplicationUser
                 {
@@ -88,7 +89,10 @@ namespace SlientMoon.Application.Features.Auth.Commands.GoogleLogin
                 Created = DateTime.UtcNow
             };
 
-            _uow.UserRepository.Update(user);
+            if (!isNewUser)
+            {
+                _uow.UserRepository.Update(user);
+            }
 
 
             var response = new AuthenticationResponse

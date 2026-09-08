@@ -1,4 +1,4 @@
-﻿using SlientMoon.Domain.Enums;
+using SlientMoon.Domain.Enums;
 using System.Collections.Generic;
 
 namespace SlientMoon.Application.DTOs.Admin
@@ -13,6 +13,6 @@ namespace SlientMoon.Application.DTOs.Admin
         public string CourseId { get; set; }
         public string NarratorId { get; set; }
 
-        public Dictionary<LanguageCode, AdminTrackTranslationInput> Languages { get; set; }
+        public Dictionary<LanguageCode, Dictionary<TranslatableField, string>> Languages { get; set; } = new();
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Application.Abstractions.Messaging;
 using SlientMoon.Application.Interfaces.Services;
+using SlientMoon.Domain.Constants;
 using SlientMoon.Domain.Entities;
 using SlientMoon.Domain.Enums;
 using SlientMoon.Domain.Errors;
@@ -15,8 +16,6 @@ namespace SlientMoon.Application.Features.Categories.Commands.DeleteCategory
 
     public class DeleteCategoryCommandHandler : ICommandHandler<DeleteCategoryCommand, bool>
     {
-        private static readonly TranslatableField[] Fields = { TranslatableField.Name };
-
         private readonly IUow _uow;
         private readonly ITranslationService _translationService;
         private readonly IStorageService _storageService;
@@ -40,7 +39,7 @@ namespace SlientMoon.Application.Features.Categories.Commands.DeleteCategory
             if (!string.IsNullOrWhiteSpace(existing.IconUrl))
                 await _storageService.DeleteAsync(existing.IconUrl, StorageType.Image, ct);
 
-            await _translationService.DeleteTranslationsAsync<Category>(command.Id, Fields, ct);
+            await _translationService.DeleteTranslationsAsync<Category>(command.Id, TranslatableFields.Category, ct);
 
             _uow.CategoryRepository.Delete(existing);
 

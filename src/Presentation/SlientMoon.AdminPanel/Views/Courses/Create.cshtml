@@ -1,7 +1,17 @@
+@using SlientMoon.Application.Common.Extensions
+@using SlientMoon.Domain.Constants
+@using SlientMoon.Domain.Enums
 @model SlientMoon.AdminPanel.Models.Courses.CreateCourseViewModel
 
 @{
     ViewData["Title"] = "Yeni kurs";
+    var languages = Enum.GetValues<LanguageCode>();
+    var labels = new Dictionary<TranslatableField, string>
+    {
+        [TranslatableField.Title] = "Başlıq",
+        [TranslatableField.Subtitle] = "Alt başlıq",
+        [TranslatableField.Description] = "Təsvir"
+    };
 }
 
 <h1 class="h3 mb-4">Yeni kurs</h1>
@@ -11,63 +21,36 @@
     <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
     <ul class="nav nav-tabs mb-3">
-        <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-en" type="button">EN</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-az" type="button">AZ</button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ru" type="button">RU</button>
-        </li>
+        @foreach (var lang in languages)
+        {
+            <li class="nav-item">
+                <button class="nav-link @(lang == LanguageCode.EN ? "active" : "")"
+                        data-bs-toggle="tab" data-bs-target="#tab-@lang" type="button">@lang</button>
+            </li>
+        }
     </ul>
 
     <div class="tab-content mb-4">
-        <div class="tab-pane fade show active" id="tab-en">
-            <div class="mb-3">
-                <label asp-for="TitleEn" class="form-label">Başlıq (EN) *</label>
-                <input asp-for="TitleEn" class="form-control" />
-                <span asp-validation-for="TitleEn" class="text-danger"></span>
+        @foreach (var lang in languages)
+        {
+            <div class="tab-pane fade @(lang == LanguageCode.EN ? "show active" : "")" id="tab-@lang">
+                @foreach (var field in TranslatableFields.Course)
+                {
+                    var required = lang == LanguageCode.EN && field == TranslatableField.Title;
+                    <div class="mb-3">
+                        <label class="form-label">@labels[field] (@lang) @(required ? "*" : "")</label>
+                        @if (field == TranslatableField.Description)
+                        {
+                            <textarea name="Languages[@lang][@field]" class="form-control" rows="4">@Model.Languages.Get(lang, field)</textarea>
+                        }
+                        else
+                        {
+                            <input name="Languages[@lang][@field]" value="@Model.Languages.Get(lang, field)" class="form-control" />
+                        }
+                    </div>
+                }
             </div>
-            <div class="mb-3">
-                <label asp-for="SubtitleEn" class="form-label">Alt başlıq (EN)</label>
-                <input asp-for="SubtitleEn" class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label asp-for="DescriptionEn" class="form-label">Təsvir (EN)</label>
-                <textarea asp-for="DescriptionEn" class="form-control" rows="4"></textarea>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="tab-az">
-            <div class="mb-3">
-                <label asp-for="TitleAz" class="form-label">Başlıq (AZ)</label>
-                <input asp-for="TitleAz" class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label asp-for="SubtitleAz" class="form-label">Alt başlıq (AZ)</label>
-                <input asp-for="SubtitleAz" class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label asp-for="DescriptionAz" class="form-label">Təsvir (AZ)</label>
-                <textarea asp-for="DescriptionAz" class="form-control" rows="4"></textarea>
-            </div>
-        </div>
-
-        <div class="tab-pane fade" id="tab-ru">
-            <div class="mb-3">
-                <label asp-for="TitleRu" class="form-label">Başlıq (RU)</label>
-                <input asp-for="TitleRu" class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label asp-for="SubtitleRu" class="form-label">Alt başlıq (RU)</label>
-                <input asp-for="SubtitleRu" class="form-control" />
-            </div>
-            <div class="mb-3">
-                <label asp-for="DescriptionRu" class="form-label">Təsvir (RU)</label>
-                <textarea asp-for="DescriptionRu" class="form-control" rows="4"></textarea>
-            </div>
-        </div>
+        }
     </div>
 
     <div class="row">
@@ -95,6 +78,17 @@
                 <label asp-for="IsFeatured" class="form-check-label">Seçilmiş kurs</label>
             </div>
         </div>
+    </div>
+
+    <div class="mb-4">
+        <label asp-for="NarratorIds" class="form-label">Narrator-lar</label>
+        <select name="NarratorIds" class="form-select" multiple size="5">
+            @foreach (var narrator in Model.NarratorOptions)
+            {
+                <option value="@narrator.Id">@narrator.Name (@narrator.Gender)</option>
+            }
+        </select>
+        <div class="form-text">Ctrl (Cmd) basılı saxlayaraq bir neçə narrator seçə bilərsiniz.</div>
     </div>
 
     <div class="mb-4">

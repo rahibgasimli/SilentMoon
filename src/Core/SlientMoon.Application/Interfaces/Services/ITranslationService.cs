@@ -25,10 +25,14 @@ namespace SlientMoon.Application.Interfaces.Services
             IEnumerable<TranslatableField> fields,
             CancellationToken cancellationToken = default) where TEntity : BaseEntity;
 
-        Task SaveAllTranslationsAsync<TEntity, TTranslationInput>(
+        Task SaveAllTranslationsAsync<TEntity>(
             string entityId,
-            Dictionary<LanguageCode, TTranslationInput> languages,
-            Func<TTranslationInput, Dictionary<TranslatableField, string>> fieldSelector,
+            Dictionary<LanguageCode, Dictionary<TranslatableField, string>> languages,
+            CancellationToken cancellationToken = default) where TEntity : BaseEntity;
+
+        Task<Dictionary<LanguageCode, Dictionary<TranslatableField, string>>> GetTranslationMapAsync<TEntity>(
+            string entityId,
+            IEnumerable<TranslatableField> fields,
             CancellationToken cancellationToken = default) where TEntity : BaseEntity;
     }
 }

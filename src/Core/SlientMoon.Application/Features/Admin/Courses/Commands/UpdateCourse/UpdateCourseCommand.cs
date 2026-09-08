@@ -19,9 +19,9 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.UpdateCourse
         public int DurationSec { get; set; }
         public bool IsFeatured { get; set; }
         public string CategoryId { get; set; }
+        public List<string> NarratorIds { get; set; } = new();
 
-
-        public Dictionary<LanguageCode, AdminCourseTranslationInput> Languages { get; set; }
+        public Dictionary<LanguageCode, Dictionary<TranslatableField, string>> Languages { get; set; } = new();
     }
 
     public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand, bool>
@@ -52,21 +52,13 @@ namespace SlientMoon.Application.Features.Admin.Courses.Commands.UpdateCourse
                 DurationSec = command.DurationSec,
                 IsFeatured = command.IsFeatured,
                 CategoryId = command.CategoryId,
+                NarratorIds = command.NarratorIds,
                 Languages = command.Languages,
             };
 
             await _adminCourseRepository.UpdateCourseAsync(command.Id, input, ct);
 
-            await _translationService.SaveAllTranslationsAsync<Course, AdminCourseTranslationInput>(
-                command.Id,
-                command.Languages,
-                c => new Dictionary<TranslatableField, string>
-                {
-                    { TranslatableField.Title, c.Title },
-                    { TranslatableField.Subtitle, c.Subtitle },
-                    { TranslatableField.Description, c.Description }
-                },
-                ct);
+            await _translationService.SaveAllTranslationsAsync<Course>(command.Id, command.Languages, ct);
 
             _logger.LogInformation("UpdateCourse completed. CourseId: {CourseId}", command.Id);
 
