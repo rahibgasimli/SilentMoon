@@ -397,3 +397,19 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 /src/CLAUDE.md
+
+
+# Environment Variables and Secrets
+.env
+.env.*
+!.env.example
+
+# Secret configuration files
+secrets.json
+appsettings.Development.json
+appsettings.Local.json
+
+# Certificates and private keys
+*.p12
+*.key
+*.pem
